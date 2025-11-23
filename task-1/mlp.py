@@ -80,7 +80,7 @@ def forward(input: np.ndarray) -> list[tuple[np.ndarray, np.ndarray]]:
     return cache
 
 
-def loss(output: np.ndarray, actual: np.ndarray):
+def loss(output: np.ndarray, actual: np.ndarray) -> np.float64:
     """
     Calculate the loss for a single sample
 
