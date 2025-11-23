@@ -2,13 +2,12 @@ import numpy as np
 from data import generate_polynomial_data
 
 SEED = 144
-rng = np.random.default_rng(SEED)
+rng = np.random.default_rng(SEED)  # random generator
 
 ITERATIONS = 1
 
 # Get training data
 xs, ys = generate_polynomial_data(start=-1, stop=1, step=0.05)
-num_points = len(xs)
 
 # Define network layers
 layers = [1, 3, 1]
@@ -53,7 +52,7 @@ def forward(input: np.ndarray) -> list[tuple[np.ndarray, np.ndarray]]:
         input: Inputes for the input layer of the neural network
 
     Returns:
-        A cache (in the form of a list of tuples) which contains the pre-activation and activation value of each layer in the network
+        A cache (in the form of a list of tuples) which contains the pre-activation and activation value of every neuron in each layer of the network
     """
     cache = [0] * len(layers)
 
@@ -81,9 +80,24 @@ def forward(input: np.ndarray) -> list[tuple[np.ndarray, np.ndarray]]:
     return cache
 
 
+def loss(output: np.ndarray, actual: np.ndarray):
+    """
+    Calculate the loss for a single sample
+
+    Args:
+        output: Output layer of neural network
+        actual: Actual truth value
+
+    Returns
+        The loss value calculated between the network output and actual value
+    """
+    return 0.5 * np.sum((output - actual)**2)
+
+
 # Train neural network
 for epoch in range(1, ITERATIONS+1):
-    cost = 0
-    for idx in range(num_points):
-        cache = forward(xs[idx])
-        break
+    error_sse = 0  # sum of squared errors
+    for i, (x, y) in enumerate(zip(xs, ys)):
+        cache = forward(x)
+        y_pred = cache[-1]
+        error_sse += loss(y_pred, y)
