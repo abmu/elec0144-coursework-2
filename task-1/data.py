@@ -1,19 +1,39 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-SEED = 42
-START, STOP, STEP = -1, 1, 0.05
-MEAN, SPREAD = 0, 0.02 # mean and standard deviation (spread) parameters for normal distribution
 
-rng = np.random.default_rng(SEED)
+def generate_polynomial_data(
+        seed: int = 42,
+        start: float = -1,
+        stop: float = 1,
+        step: float = 0.05,
+        mean: float = 0,
+        spread: float = 0.02
+) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Generate polynomial regression data with added Gaussian noise.
 
-num = round(1 + (STOP - START) / STEP)
-xs = np.linspace(START, STOP, num)
+    Args:
+        seed: Random seed for reproducibility
+        start: Start value for x range
+        stop: Stop value for x range
+        step: Step size for x values
+        mean: Mean of the Gaussian noise
+        spread: Standard deviation of the Gaussian noise
 
-ys = 0.8 * xs**3 + 0.3 * xs**2 - 0.4 * xs + rng.normal(MEAN, SPREAD, num)
+    Returns:
+        Tuple of x and y values as numpy arrays
+    """
+    rng = np.random.default_rng(seed)
+    num = round(1 + (stop - start) / step)
+    xs = np.linspace(start, stop, num)
+    # Generate y values from polynomial -- as shown in coursework specification
+    ys = 0.8 * xs**3 + 0.3 * xs**2 + -0.4 * xs + rng.normal(mean, spread, num)
+    return xs, ys
 
 
 if __name__ == "__main__":
+    xs, ys = generate_polynomial_data()
     plt.figure()
     plt.plot(xs, ys, 'k+')
     plt.show()
