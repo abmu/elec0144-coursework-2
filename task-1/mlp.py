@@ -26,7 +26,7 @@ for i in range(1, len(layers)):
     biases[i] = b
 
 
-def activation(x: np.ndarray, func: str) -> np.ndarray:
+def activation(x: np.ndarray, func: str = 'linear') -> np.ndarray:
     """
     Applies activation function to input values
 
@@ -37,8 +37,11 @@ def activation(x: np.ndarray, func: str) -> np.ndarray:
     Returns:
         The result of func(x)
     """
-    if func == 'tanh':
+    if func == 'linear':
+        return x
+    elif func == 'tanh':
         return np.tanh(x)
+    # default to linear function
     return x
 
 
@@ -53,16 +56,28 @@ def forward(input: np.ndarray) -> list[tuple[np.ndarray, np.ndarray]]:
         A cache (in the form of a list of tuples) which contains the pre-activation and activation value of each layer in the network
     """
     cache = [0] * len(layers)
+
+    # Input layer
     input_size = layers[0]
     x = input.reshape(input_size, 1)
     cache[0] = (x, np.array([]))
-    for i in range(1, len(layers)):
+
+    # Hidden layers
+    for i in range(1, len(layers)-1):
         w = weights[i]
         b = biases[i]
         z = w @ x + b  # pre-activation value of layer
         a = activation(z, 'tanh')
         cache[i] = (z, a)
         x = a
+
+    # Output layer
+    w = weights[-1]
+    b = biases[-1]
+    z = w @ x + b
+    a = activation(z, 'linear')
+    cache[-1] = (z, a)
+
     return cache
 
 
