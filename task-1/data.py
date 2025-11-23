@@ -12,6 +12,8 @@ xs = np.linspace(START, STOP, num)
 
 ys = 0.8 * xs**3 + 0.3 * xs**2 - 0.4 * xs + rng.normal(MEAN, SPREAD, num)
 
-plt.figure()
-plt.plot(xs, ys, 'k+')
-plt.show()
+
+if __name__ == "__main__":
+    plt.figure()
+    plt.plot(xs, ys, 'k+')
+    plt.show()
