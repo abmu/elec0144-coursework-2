@@ -19,6 +19,17 @@ biases = [0] * len(layers)
 for i in range(1, len(layers)):
     prev_layer = layers[i-1]
     next_layer = layers[i]
+    # Xavier initialisation
+
+
+
+
+    ///... complete this part!!!
+
+
+
+
+
     w = rng.normal(size=(next_layer, prev_layer), scale=0.5)
     b = rng.normal(size=(next_layer, 1), scale=0.1)
     weights[i] = w
@@ -92,6 +103,10 @@ def loss(output: np.ndarray, actual: np.ndarray) -> np.float64:
         The loss value calculated between the network output and actual value
     """
     return 0.5 * np.sum((output - actual)**2)
+
+
+def backprop():
+    pass
 
 
 # Train neural network
