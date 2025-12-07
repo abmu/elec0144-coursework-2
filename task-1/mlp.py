@@ -6,8 +6,8 @@ from plot import plot_data
 SEED = 144
 rng = np.random.default_rng(SEED)  # random generator
 
-ITERATIONS = 1
-LEARNING_RATE = 0.01
+ITERATIONS = 1000
+LEARNING_RATE = 0.1
 
 # Get training data
 xs, ys = generate_polynomial_data(start=-1, stop=1, step=0.05)
@@ -54,7 +54,7 @@ def forward(input: np.ndarray) -> list[tuple[np.ndarray, np.ndarray]]:
     Performs a forward pass through the neural network.
 
     Args:
-        input: Inputes for the input layer of the neural network
+        input: Inputs for the input layer of the neural network
 
     Returns:
         A cache (in the form of a list of tuples) which contains the pre-activation and activation value of every neuron in each layer of the network
@@ -102,6 +102,14 @@ def loss(output: np.ndarray, actual: np.ndarray) -> np.float64:
 
 
 def backprop(cache: list[tuple[np.ndarray, np.ndarray]], y: np.ndarray, lr: float = 0.01) -> None:
+    """
+    Performs a backwards pass through the neural network.
+
+    Args:
+        cache: The pre-activation and activation value of every neuron in each layer of the network based on the inputs
+        y: Actual truth value outputs for given inputs
+        lr: Learning rate of gradient descent
+    """
     grad_w = [0] * len(layers)
     grad_b = [0] * len(layers)
 
