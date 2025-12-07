@@ -43,7 +43,7 @@ DERIVATIVE = {
     'linear': lambda x: np.ones_like(x),
     'tanh': lambda x: 1 - np.tanh(x) ** 2,
     'relu': lambda x: (x > 0).astype(x.dtype),
-    'sigmoid': lambda x: ACTIVATION['sigmoid'](x) * (1 - ACTIVATION['sigmoid'](x))
+    'sigmoid': lambda x: (s := ACTIVATION['sigmoid'](x)) * (1 - s)
 }
 
 
