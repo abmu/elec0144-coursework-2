@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
+from plot import plot_data
 
 
 def generate_polynomial_data(
@@ -34,6 +34,4 @@ def generate_polynomial_data(
 
 if __name__ == "__main__":
     xs, ys = generate_polynomial_data()
-    plt.figure()
-    plt.plot(xs, ys, 'k+')
-    plt.show()
+    plot_data(xs, ys)

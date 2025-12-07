@@ -1,5 +1,7 @@
 import numpy as np
 from data import generate_polynomial_data
+from plot import plot_data
+
 
 SEED = 144
 rng = np.random.default_rng(SEED)  # random generator
@@ -144,8 +146,12 @@ def backprop(cache: list[tuple[np.ndarray, np.ndarray]], y: np.ndarray, lr: floa
 # Train neural network
 for epoch in range(1, ITERATIONS+1):
     error_sse = 0  # sum of squared errors
+    res = []
     for i, (x, y) in enumerate(zip(xs, ys)):
         cache = forward(x)
         _, y_pred = cache[-1]
+        res.append(y_pred.squeeze())
         error_sse += loss(y_pred, y)
         backprop(cache, y, LEARNING_RATE)
+
+plot_data(xs, res)
