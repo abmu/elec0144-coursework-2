@@ -34,12 +34,16 @@ for i in range(1, len(layers)):
 
 ACTIVATION = {
     'linear': lambda x: x,
-    'tanh': lambda x: np.tanh(x)
+    'tanh': lambda x: np.tanh(x),
+    'relu': lambda x: np.maximum(0, x),
+    'sigmoid': lambda x: 1 / (1 + np.exp(-x))
 }
 
 DERIVATIVE = {
     'linear': lambda x: np.ones_like(x),
-    'tanh': lambda x: 1 - np.tanh(x) ** 2
+    'tanh': lambda x: 1 - np.tanh(x) ** 2,
+    'relu': lambda x: (x > 0).astype(x.dtype),
+    'sigmoid': lambda x: ACTIVATION['sigmoid'](x) * (1 - ACTIVATION['sigmoid'](x))
 }
 
 
