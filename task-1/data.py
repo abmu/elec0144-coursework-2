@@ -3,12 +3,12 @@ from plot import plot_data
 
 
 def generate_polynomial_data(
-        seed: int = 42,
         start: float = -1,
         stop: float = 1,
         step: float = 0.05,
         mean: float = 0,
-        spread: float = 0.02
+        spread: float = 0.02,
+        seed: int = 42,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Generate polynomial regression data with added Gaussian noise.

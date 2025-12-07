@@ -1,13 +1,14 @@
 import numpy as np
 from data import generate_polynomial_data
-from plot import plot_data
+from plot import plot_data, plot_loss, plot_prediction
 
 
 SEED = 144
 rng = np.random.default_rng(SEED)  # random generator
 
-ITERATIONS = 1000
-LEARNING_RATE = 0.1
+ITERATIONS = 10000
+LEARNING_RATE = 0.01
+LOSS_GOAL = 1e-3
 
 # Get training data
 xs, ys = generate_polynomial_data(start=-1, stop=1, step=0.05)
@@ -64,7 +65,7 @@ def forward(input: np.ndarray) -> list[tuple[np.ndarray, np.ndarray]]:
     # Input layer
     input_size = layers[0][0]
     x = input.reshape(input_size, 1)
-    cache[0] = (x, np.array([]))  # no activation value for first layer
+    cache[0] = (np.array([]), x)  # no activation function for first layer
 
     # Hidden layers
     for i in range(1, len(layers)-1):
@@ -116,14 +117,14 @@ def backprop(cache: list[tuple[np.ndarray, np.ndarray]], y: np.ndarray, lr: floa
     # Output layer
     z, a = cache[-1]
     func = layers[-1][1]
-    a_prev = cache[-2][1] if len(layers) > 2 else cache[0][0]
+    a_prev = cache[-2][1]
 
     dL_da = a - y  # derivative of loss function with respect to activation layer
     da_dz = DERIVATIVE[func](z)  # derivative of activation layer with respect to pre-activation values
     delta = dL_da * da_dz
     
     dz_dw = a_prev  # derivative of pre-activation values with respect to weights
-    dz_db = 1  # derivative of pre-activation values with respect to biases
+    dz_db = np.ones_like(b)  # derivative of pre-activation values with respect to biases
     dz_dprev = weights[-1]  # derivative of last layer pre-activation values with respect to previous activation layer
 
     # Loss function gradients
@@ -135,7 +136,7 @@ def backprop(cache: list[tuple[np.ndarray, np.ndarray]], y: np.ndarray, lr: floa
     for i in range(len(layers)-2, 0, -1):
         z, a = cache[i]
         func = layers[i][1]
-        a_prev = cache[i-1][1] if i-1 > 0 else cache[0][0]
+        a_prev = cache[i-1][1]
 
         dL_da = grad_prev
         da_dz = DERIVATIVE[func](z)
@@ -150,16 +151,37 @@ def backprop(cache: list[tuple[np.ndarray, np.ndarray]], y: np.ndarray, lr: floa
         weights[i] -= lr * grad_w[i]
         biases[i] -= lr * grad_b[i]
 
+TODO
+... min max x input
+... convert to class
 
 # Train neural network
+losses = []
 for epoch in range(1, ITERATIONS+1):
     error_sse = 0  # sum of squared errors
-    res = []
+    # Stochastic gradient descent
     for i, (x, y) in enumerate(zip(xs, ys)):
         cache = forward(x)
         _, y_pred = cache[-1]
-        res.append(y_pred.squeeze())
         error_sse += loss(y_pred, y)
         backprop(cache, y, LEARNING_RATE)
+    losses.append(error_sse)
 
-plot_data(xs, res)
+    if error_sse < LOSS_GOAL:
+        # Stop training early
+        print(f'Epoch: {epoch}, Loss = {error_sse:.4f} < Early stoping threshold = {LOSS_GOAL:.4f}')
+        break
+
+    if epoch % 1000 == 0:
+        print(f'Epoch: {epoch}, Loss = {error_sse:.4f}')
+
+plot_loss(losses)
+
+xtest, _ = generate_polynomial_data(start=-0.97, stop=0.93, step=0.1)
+ypreds = np.array([forward(x)[-1][1].item() for x in xtest])
+
+
+TODO
+... show on same plot
+plot_data(xs, ys)
+plot_prediction(xtest, ypreds)
