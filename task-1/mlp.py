@@ -119,14 +119,16 @@ def loss(output: np.ndarray, actual: np.ndarray) -> np.float64:
     return 0.5 * np.sum((output - actual)**2)
 
 
-def backprop(cache: list[tuple[np.ndarray, np.ndarray]], y: np.ndarray, lr: float = 0.01) -> None:
+def backprop(cache: list[tuple[np.ndarray, np.ndarray]], y: np.ndarray) -> tuple[list[np.ndarray], list[np.ndarray]]:
     """
     Performs a backwards pass through the neural network.
 
     Args:
         cache: The pre-activation and activation value of every neuron in each layer of the network based on the inputs
         y: Actual truth value outputs for given inputs
-        lr: Learning rate of gradient descent
+
+    Returns
+        The gradients for the weights and biases after the backwards pass
     """
     grad_w = [0] * len(layers)
     grad_b = [0] * len(layers)
@@ -163,7 +165,18 @@ def backprop(cache: list[tuple[np.ndarray, np.ndarray]], y: np.ndarray, lr: floa
         grad_b[i] = delta
         grad_prev = weights[i].T @ delta
 
-    # Gradient descent update
+    return grad_w, grad_b
+
+
+def stochastic_grad_descent(grad_w: list[np.ndarray], grad_b: list[np.ndarray], lr: float = 0.01) -> None:
+    """
+    Peforms a stocahstic gradient descent based on the backwards pass result
+
+    Args:
+        grad_w: Gradients for the weights after single backwards pass
+        grad_b: Gradients for the biases after single backwards pass
+        lr: Learning rate of gradient descent
+    """
     for i in range(1, len(layers)):
         weights[i] -= lr * grad_w[i]
         biases[i] -= lr * grad_b[i]
@@ -172,12 +185,13 @@ def backprop(cache: list[tuple[np.ndarray, np.ndarray]], y: np.ndarray, lr: floa
 losses = []
 for epoch in range(1, ITERATIONS+1):
     error_sse = 0  # sum of squared errors
-    # Stochastic gradient descent
     for i, (x, y) in enumerate(zip(xs_norm, ys)):
         cache = forward(x)
         _, y_pred = cache[-1]
         error_sse += loss(y_pred, y)
-        backprop(cache, y, LEARNING_RATE)
+        grad_w, grad_b = backprop(cache, y)
+        stochastic_grad_descent(grad_w, grad_b, LEARNING_RATE)
+        
     losses.append(error_sse)
 
     if error_sse < LOSS_GOAL:
