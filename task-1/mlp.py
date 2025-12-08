@@ -7,7 +7,7 @@ SEED = 144
 rng = np.random.default_rng(SEED)  # random generator
 
 ITERATIONS = 10000
-LEARNING_RATE = 0.01
+LEARNING_RATE = 0.001
 LOSS_GOAL = 1e-3
 
 # Get training data
