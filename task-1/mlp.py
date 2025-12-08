@@ -12,6 +12,23 @@ LOSS_GOAL = 1e-3
 
 # Get training data
 xs, ys = generate_polynomial_data(start=-1, stop=1, step=0.05)
+x_min, x_max = xs.min(), xs.max()
+
+
+def normalise_x(x: np.ndarray) -> np.ndarray:
+    """
+    Normalise the input to between [-1, 1]
+
+    Args:
+        input: Input values
+
+    Returns:
+        Normalised output values between [-1, 1]
+    """
+    return 2 * (x - x_min) / (x_max - x_min) - 1
+
+
+xs_norm = normalise_x(xs)
 
 # Define network layers
 layers = [
@@ -151,16 +168,12 @@ def backprop(cache: list[tuple[np.ndarray, np.ndarray]], y: np.ndarray, lr: floa
         weights[i] -= lr * grad_w[i]
         biases[i] -= lr * grad_b[i]
 
-TODO
-... min max x input
-... convert to class
-
 # Train neural network
 losses = []
 for epoch in range(1, ITERATIONS+1):
     error_sse = 0  # sum of squared errors
     # Stochastic gradient descent
-    for i, (x, y) in enumerate(zip(xs, ys)):
+    for i, (x, y) in enumerate(zip(xs_norm, ys)):
         cache = forward(x)
         _, y_pred = cache[-1]
         error_sse += loss(y_pred, y)
@@ -177,11 +190,9 @@ for epoch in range(1, ITERATIONS+1):
 
 plot_loss(losses)
 
+# Run on test data
 xtest, _ = generate_polynomial_data(start=-0.97, stop=0.93, step=0.1)
-ypreds = np.array([forward(x)[-1][1].item() for x in xtest])
+xtest_norm = normalise_x(xtest)
+ypreds = np.array([forward(x)[-1][1].item() for x in xtest_norm])
 
-
-TODO
-... show on same plot
-plot_data(xs, ys)
-plot_prediction(xtest, ypreds)
+plot_prediction(pred=(xtest, ypreds), actual=(xs, ys))

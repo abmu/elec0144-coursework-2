@@ -14,7 +14,8 @@ def plot_loss(ys: np.ndarray) -> None:
     plt.show()
 
 
-def plot_prediction(xs: np.ndarray, ys: np.ndarray) -> None:
+def plot_prediction(pred: tuple[np.ndarray, np.ndarray], actual: tuple[np.ndarray, np.ndarray]) -> None:
     plt.figure()
-    plt.plot(xs, ys, 'r-')
+    plt.plot(*actual, 'k+')
+    plt.plot(*pred, 'r-')
     plt.show()
