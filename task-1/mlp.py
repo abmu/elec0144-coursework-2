@@ -66,6 +66,22 @@ DERIVATIVE = {
     'sigmoid': lambda x: (s := ACTIVATION['sigmoid'](x)) * (1 - s)
 }
 
+# Adam
+BETA_1 = 0.9
+BETA_2 = 0.999
+EPSILON = 1e-8
+
+m_w = [0] * len(layers)
+v_w = [0] * len(layers)
+m_b = [0] * len(layers)
+v_b = [0] * len(layers)
+
+for i in range(1, len(layers)):
+    m_w[i] = np.zeros_like(weights[i])
+    v_w[i] = np.zeros_like(weights[i])
+    m_b[i] = np.zeros_like(biases[i])
+    v_b[i] = np.zeros_like(biases[i])
+
 
 def forward(input: np.ndarray) -> list[tuple[np.ndarray, np.ndarray]]:
     """
@@ -181,16 +197,53 @@ def stochastic_grad_descent(grad_w: list[np.ndarray], grad_b: list[np.ndarray], 
         weights[i] -= lr * grad_w[i]
         biases[i] -= lr * grad_b[i]
 
+
+def adam_update(grad_w: list[np.ndarray], grad_b: list[np.ndarray], t: int, lr: float = 0.01) -> None:
+    """
+    Peforms an Adam update step
+
+    Args:
+        grad_w: Gradients for the weights after single backwards pass
+        grad_b: Gradients for the biases after single backwards pass
+        t: Timestep
+        lr: Learning rate of gradient descent
+    """
+    for i in range(1, len(layers)):
+        # Update momentum
+        m_w[i] = BETA_1 * m_w[i] + (1 - BETA_1) * grad_w[i]
+        m_b[i] = BETA_1 * m_b[i] + (1 - BETA_1) * grad_b[i]
+
+        # Update RMS prop (-- improvement on AdaGrad)
+        v_w[i] = BETA_2 * v_w[i] + (1 - BETA_2) * (grad_w[i] ** 2)
+        v_b[i] = BETA_2 * v_b[i] + (1 - BETA_2) * (grad_b[i] ** 2)
+
+        # Compute bias corrected estimates
+        m_w_hat = m_w[i] / (1 - BETA_1 ** t)
+        m_b_hat = m_b[i] / (1 - BETA_1 ** t)
+        v_w_hat = v_w[i] / (1 - BETA_2 ** t)
+        v_b_hat = v_b[i] / (1 - BETA_2 ** t)
+
+        # Weights and biases update
+        weights[i] -= lr * m_w_hat / (np.sqrt(v_w_hat) + EPSILON)
+        biases[i] -= lr * m_b_hat / (np.sqrt(v_b_hat) + EPSILON)
+
+
 # Train neural network
 losses = []
+t = 0
 for epoch in range(1, ITERATIONS+1):
     error_sse = 0  # sum of squared errors
+
     for i, (x, y) in enumerate(zip(xs_norm, ys)):
+        t += 1
+
         cache = forward(x)
         _, y_pred = cache[-1]
         error_sse += loss(y_pred, y)
+
         grad_w, grad_b = backprop(cache, y)
-        stochastic_grad_descent(grad_w, grad_b, LEARNING_RATE)
+        # stochastic_grad_descent(grad_w, grad_b, LEARNING_RATE)
+        adam_update(grad_w, grad_b, t, LEARNING_RATE)
         
     losses.append(error_sse)
 
