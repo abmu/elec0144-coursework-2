@@ -3,9 +3,6 @@ from data import generate_polynomial_data
 from plot import plot_data, plot_loss, plot_prediction
 
 
-SEED = 144
-rng = np.random.default_rng(SEED)  # random generator
-
 ITERATIONS = 10000
 LEARNING_RATE = 0.001
 LOSS_GOAL = 1e-3
@@ -30,27 +27,38 @@ def normalise_x(x: np.ndarray) -> np.ndarray:
 
 xs_norm = normalise_x(xs)
 
+
+class MultilayerPerceptron:
+    def __init__(self, layers: list[tuple[int, str]]) -> None:
+        self.layers = layers  # [(layer size, activation function), ...]
+        self.weights = [0] * len(layers)
+        self.biases = [0] * len(layers)
+        self._init_params()
+
+    def _init_params(self, seed: int = 144) -> None:
+        # Initialise weights and biases with random values
+        # NOTE: 0-index will not be used
+        rng = np.random.default_rng(seed)  # random generator
+        for i in range(1, len(self.layers)):
+            prev_layer = self.layers[i-1][0]
+            next_layer = self.layers[i][0]
+            # Glorot initialisation
+            limit = np.sqrt(1 / prev_layer)
+            w = rng.normal(0, limit, size=(next_layer, prev_layer))
+            b = np.zeros((next_layer, 1))
+            self.weights[i] = w
+            self.biases[i] = b
+
+
+
 # Define network layers
 layers = [
     # (size, activation)
-    (1, None),
+    (1, ''),
     (3, 'tanh'),
     (1, 'linear'),
 ]
 
-# Initialise weights and biases with random values
-# NOTE: 0-index will not be used
-weights = [0] * len(layers)
-biases = [0] * len(layers)
-for i in range(1, len(layers)):
-    prev_layer = layers[i-1][0]
-    next_layer = layers[i][0]
-    # Glorot initialisation
-    limit = np.sqrt(1 / prev_layer)
-    w = rng.normal(0, limit, size=(next_layer, prev_layer))
-    b = np.zeros((next_layer, 1))
-    weights[i] = w
-    biases[i] = b
 
 ACTIVATION = {
     'linear': lambda x: x,
@@ -226,6 +234,9 @@ def adam_update(grad_w: list[np.ndarray], grad_b: list[np.ndarray], t: int, lr: 
         # Weights and biases update
         weights[i] -= lr * m_w_hat / (np.sqrt(v_w_hat) + EPSILON)
         biases[i] -= lr * m_b_hat / (np.sqrt(v_b_hat) + EPSILON)
+
+
+# Maybe add SGD + momentum optimiser algorithm !!!
 
 
 # Train neural network
