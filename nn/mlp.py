@@ -1,4 +1,5 @@
 import numpy as np
+from optim import Optimiser
 
 
 ACTIVATION = {
@@ -17,8 +18,9 @@ DERIVATIVE = {
 
 
 class MultilayerPerceptron:
-    def __init__(self, layers: list[tuple[int, str]]) -> None:
+    def __init__(self, layers: list[tuple[int, str]], optimiser: Optimiser) -> None:
         self.layers = layers  # [(layer size, activation function), ...]
+        self.optimiser = optimiser
         self.weights = [None] * len(layers)
         self.biases = [None] * len(layers)
         self.x_min, self.x_max = None, None
@@ -180,6 +182,7 @@ class MultilayerPerceptron:
         xs_norm = self._normalise_xs(xs)
 
         # Train neural network
+        self.optimiser.reset()
         losses = []
         for epoch in range(1, iterations+1):
             error_sse = 0  # sum of squared errors
@@ -190,8 +193,7 @@ class MultilayerPerceptron:
                 error_sse += self._loss(y_pred, y)
 
                 grad_w, grad_b = self._backprop(cache, y)
-                # stochastic_grad_descent(grad_w, grad_b, LEARNING_RATE)
-                adam_update(grad_w, grad_b, t, LEARNING_RATE)
+                self.optimiser.update(self.weights, self.biases, grad_w, grad_b)
                 
             losses.append(error_sse)
 

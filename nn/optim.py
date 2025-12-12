@@ -49,38 +49,45 @@ class Adam(Optimiser):
         self.lr = lr  # learning rate
 
         # Internal state
-        self.m_w = []
-        self.v_w = []
-        self.m_b = []
-        self.v_b = []
+        self.m_w = [None,]
+        self.v_w = [None,]
+        self.m_b = [None,]
+        self.v_b = [None,]
         self.t = 0  # timestep
         
-        # Shapes used for internal state initialisation
-        self.weight_shapes = []
-        self.bias_shapes = []
         self.initialised = False
 
 
     def _initialise(self, weights: list[np.ndarray], biases: list[np.ndarray]) -> None:
         """
-        Store the shapes of the weights and biases
+        Initialise the internal state variables
         """
-        self.weight_shapes = [w.shape if w is not None else None for w in weights]
-        self.bias_shapes = [b.shape if b is not None else None for b in biases]
+        n = len(weights)
+
+        self.m_w = [None] + [np.zeros_like(weights[i]) for i in range(1, n)]
+        self.v_w = [None] + [np.zeros_like(weights[i]) for i in range(1, n)]
+        self.m_b = [None] + [np.zeros_like(biases[i]) for i in range(1, n)]
+        self.v_b = [None] + [np.zeros_like(biases[i]) for i in range(1, n)]
+
         self.initialised = True
-        self.reset()
 
 
     def reset(self) -> None:
-        self.m_w = [np.zeros(shape) if shape is not None else None for shape in self.weight_shapes]
-        self.v_w = [np.zeros(shape) if shape is not None else None for shape in self.weight_shapes]
-        self.m_b = [np.zeros(shape) if shape is not None else None for shape in self.bias_shapes]
-        self.v_b = [np.zeros(shape) if shape is not None else None for shape in self.bias_shapes]
+        if not self.initialised:
+            return
+
+        n = len(self.m_w)
+        for i in range(1, n):
+            self.m_w[i].fill(0)
+            self.v_w[i].fill(0)
+            self.m_b[i].fill(0)
+            self.v_b[i].fill(0)
+        
         self.t = 0
 
 
     def update(self, weights: list[np.ndarray], biases: list[np.ndarray], grad_w: list[np.ndarray], grad_b: list[np.ndarray]) -> None:
-        if not self.initialised:
+        if not self.initialised:  # lazy initialisation
             self._initialise(weights, biases)
 
         self.t += 1
