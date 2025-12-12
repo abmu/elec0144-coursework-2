@@ -1,5 +1,5 @@
 import numpy as np
-from optim import Optimiser
+from .optim import Optimiser
 
 
 ACTIVATION = {
@@ -86,7 +86,7 @@ class MultilayerPerceptron:
         return cache
 
 
-    def _loss(output: np.ndarray, actual: np.ndarray) -> np.float64:
+    def _loss(self, output: np.ndarray, actual: np.ndarray) -> np.float64:
         """
         Calculate the loss for a single sample
 
