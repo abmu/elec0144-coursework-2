@@ -10,7 +10,7 @@ def plot_data(xs: np.ndarray, ys: np.ndarray) -> None:
 
 def plot_loss(ys: np.ndarray) -> None:
     plt.figure()
-    plt.plot(ys)
+    plt.plot(range(1, len(ys)+1), ys)  # start from 1
     plt.show()
 
 

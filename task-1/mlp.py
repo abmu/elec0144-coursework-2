@@ -10,11 +10,10 @@ LOSS_GOAL = 1e-3
 # Get training data
 xs, ys = generate_polynomial_data(start=-1, stop=1, step=0.05)
 
-
 # Define network layers
 layers = [
     # (size, activation)
-    (1, ''),
+    (1, None),
     (3, 'tanh'),
     (1, 'linear'),
 ]
@@ -34,11 +33,12 @@ DERIVATIVE = {
     'sigmoid': lambda x: (s := ACTIVATION['sigmoid'](x)) * (1 - s)
 }
 
+
 class MultilayerPerceptron:
     def __init__(self, layers: list[tuple[int, str]]) -> None:
         self.layers = layers  # [(layer size, activation function), ...]
-        self.weights = [0] * len(layers)
-        self.biases = [0] * len(layers)
+        self.weights = [None] * len(layers)
+        self.biases = [None] * len(layers)
         self.x_min, self.x_max = None, None
         self._init_params()
 
@@ -64,7 +64,7 @@ class MultilayerPerceptron:
             self.biases[i] = b
 
 
-    def forward(self, input: np.ndarray) -> list[tuple[np.ndarray, np.ndarray]]:
+    def _forward(self, input: np.ndarray) -> list[tuple[np.ndarray, np.ndarray]]:
         """
         Performs a forward pass through the neural network.
 
@@ -74,7 +74,7 @@ class MultilayerPerceptron:
         Returns:
             A cache (in the form of a list of tuples) which contains the pre-activation and activation value of every neuron in each layer of the network
         """
-        cache = [0] * len(self.layers)
+        cache = [None] * len(self.layers)
 
         # Input layer
         input_size = self.layers[0][0]
@@ -102,7 +102,7 @@ class MultilayerPerceptron:
         return cache
 
 
-    def loss(output: np.ndarray, actual: np.ndarray) -> np.float64:
+    def _loss(output: np.ndarray, actual: np.ndarray) -> np.float64:
         """
         Calculate the loss for a single sample
 
@@ -116,7 +116,7 @@ class MultilayerPerceptron:
         return 0.5 * np.sum((output - actual)**2)
 
 
-    def backprop(self, cache: list[tuple[np.ndarray, np.ndarray]], y: np.ndarray) -> tuple[list[np.ndarray], list[np.ndarray]]:
+    def _backprop(self, cache: list[tuple[np.ndarray, np.ndarray]], y: np.ndarray) -> tuple[list[np.ndarray], list[np.ndarray]]:
         """
         Performs a backwards pass through the neural network.
 
@@ -127,8 +127,8 @@ class MultilayerPerceptron:
         Returns
             The gradients for the weights and biases after the backwards pass
         """
-        grad_w = [0] * len(self.layers)
-        grad_b = [0] * len(self.layers)
+        grad_w = [None] * len(self.layers)
+        grad_b = [None] * len(self.layers)
 
         # Output layer
         z, a = cache[-1]
@@ -165,7 +165,7 @@ class MultilayerPerceptron:
         return grad_w, grad_b
     
 
-    def normalise_xs(self, xs: np.ndarray) -> np.ndarray:
+    def _normalise_xs(self, xs: np.ndarray) -> np.ndarray:
         """
         Normalise the input to between [-1, 1]
 
@@ -195,7 +195,7 @@ class MultilayerPerceptron:
         """
         # Normalise input
         self.x_min, self.x_max = xs.min(), xs.max()
-        xs_norm = self.normalise_xs(xs)
+        xs_norm = self._normalise_xs(xs)
 
         # Train neural network
         losses = []
@@ -203,11 +203,11 @@ class MultilayerPerceptron:
             error_sse = 0  # sum of squared errors
 
             for i, (x, y) in enumerate(zip(xs_norm, ys)):
-                cache = self.forward(x)
+                cache = self._forward(x)
                 _, y_pred = cache[-1]
-                error_sse += self.loss(y_pred, y)
+                error_sse += self._loss(y_pred, y)
 
-                grad_w, grad_b = self.backprop(cache, y)
+                grad_w, grad_b = self._backprop(cache, y)
                 # stochastic_grad_descent(grad_w, grad_b, LEARNING_RATE)
                 adam_update(grad_w, grad_b, t, LEARNING_RATE)
                 
@@ -218,7 +218,7 @@ class MultilayerPerceptron:
                 print(f'Epoch: {epoch}, Loss = {error_sse:.4f} < Early stopping threshold = {loss_goal:.4f}')
                 break
 
-            if epoch % (iterations // 10) == 0:
+            if epoch % 1000 == 0:
                 print(f'Epoch: {epoch}, Loss = {error_sse:.4f}')
         
         return losses
@@ -234,76 +234,9 @@ class MultilayerPerceptron:
         Returns:
             Predicted output values for the given input
         """
-        xs_norm = self.normalise_xs(xs)
-        return np.array([self.forward(x)[-1][1].item() for x in xs_norm])
+        xs_norm = self._normalise_xs(xs)
+        return np.array([self._forward(x)[-1][1].item() for x in xs_norm])
 
-
-
-
-def stochastic_grad_descent(grad_w: list[np.ndarray], grad_b: list[np.ndarray], lr: float = 0.01) -> None:
-    """
-    Peforms a stocahstic gradient descent based on the backwards pass result
-
-    Args:
-        grad_w: Gradients for the weights after single backwards pass
-        grad_b: Gradients for the biases after single backwards pass
-        lr: Learning rate of gradient descent
-    """
-    for i in range(1, len(layers)):
-        weights[i] -= lr * grad_w[i]
-        biases[i] -= lr * grad_b[i]
-
-# Adam
-BETA_1 = 0.9
-BETA_2 = 0.999
-EPSILON = 1e-8
-
-m_w = [0] * len(layers)
-v_w = [0] * len(layers)
-m_b = [0] * len(layers)
-v_b = [0] * len(layers)
-
-for i in range(1, len(layers)):
-    m_w[i] = np.zeros_like(weights[i])
-    v_w[i] = np.zeros_like(weights[i])
-    m_b[i] = np.zeros_like(biases[i])
-    v_b[i] = np.zeros_like(biases[i])
-
-
-t = 0
-def adam_update(grad_w: list[np.ndarray], grad_b: list[np.ndarray], t: int, lr: float = 0.01) -> None:
-    """
-    Peforms an Adam update step
-
-    Args:
-        grad_w: Gradients for the weights after single backwards pass
-        grad_b: Gradients for the biases after single backwards pass
-        t: Timestep
-        lr: Learning rate of gradient descent
-    """
-    global t
-    t += 1
-    for i in range(1, len(layers)):
-        # Update momentum
-        m_w[i] = BETA_1 * m_w[i] + (1 - BETA_1) * grad_w[i]
-        m_b[i] = BETA_1 * m_b[i] + (1 - BETA_1) * grad_b[i]
-
-        # Update RMS prop (-- improvement on AdaGrad)
-        v_w[i] = BETA_2 * v_w[i] + (1 - BETA_2) * (grad_w[i] ** 2)
-        v_b[i] = BETA_2 * v_b[i] + (1 - BETA_2) * (grad_b[i] ** 2)
-
-        # Compute bias corrected estimates
-        m_w_hat = m_w[i] / (1 - BETA_1 ** t)
-        m_b_hat = m_b[i] / (1 - BETA_1 ** t)
-        v_w_hat = v_w[i] / (1 - BETA_2 ** t)
-        v_b_hat = v_b[i] / (1 - BETA_2 ** t)
-
-        # Weights and biases update
-        weights[i] -= lr * m_w_hat / (np.sqrt(v_w_hat) + EPSILON)
-        biases[i] -= lr * m_b_hat / (np.sqrt(v_b_hat) + EPSILON)
-
-
-# Maybe add SGD + momentum optimiser algorithm !!!
 
 plot_loss(losses)
 
