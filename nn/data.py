@@ -1,5 +1,4 @@
 import numpy as np
-from plot import plot_data
 
 
 def generate_polynomial_data(
@@ -30,8 +29,3 @@ def generate_polynomial_data(
     # Generate y values from polynomial -- as shown in coursework specification
     ys = 0.8 * xs**3 + 0.3 * xs**2 + -0.4 * xs + rng.normal(mean, spread, num)
     return xs, ys
-
-
-if __name__ == "__main__":
-    xs, ys = generate_polynomial_data()
-    plot_data(xs, ys)

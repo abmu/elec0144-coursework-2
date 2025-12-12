@@ -46,7 +46,7 @@ class Adam(Optimiser):
         self.beta1 = beta1
         self.beta2 = beta2
         self.epsilon = epsilon
-        self.lr = lr
+        self.lr = lr  # learning rate
 
         # Internal state
         self.m_w = []
