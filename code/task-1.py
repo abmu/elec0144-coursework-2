@@ -6,7 +6,7 @@ from utils import generate_polynomial_data, plot_loss, plot_prediction
 # Get training data
 xs, ys = generate_polynomial_data(start=-1, stop=1, step=0.05)
 
-# Define network layers
+# Define network layers and optimiser
 layers = [
     # (size, activation)
     (1, None),
@@ -14,10 +14,12 @@ layers = [
     (1, 'linear'),
 ]
 
-# Setup and train neural network
+optimiser = SGD()
+
+# Train and evaluate neural network
 mlp = MultilayerPerceptron(
     layers=layers,
-    optimiser=SGD()
+    optimiser=optimiser
 )
 
 losses = mlp.train(xs, ys, iterations=10000)

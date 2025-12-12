@@ -11,11 +11,14 @@ def plot_data(xs: np.ndarray, ys: np.ndarray) -> None:
 def plot_loss(ys: np.ndarray) -> None:
     plt.figure()
     plt.plot(range(1, len(ys)+1), ys)  # start from 1
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
     plt.show()
 
 
 def plot_prediction(pred: tuple[np.ndarray, np.ndarray], actual: tuple[np.ndarray, np.ndarray]) -> None:
     plt.figure()
-    plt.plot(*actual, 'k+')
-    plt.plot(*pred, 'r-')
+    plt.plot(*actual, 'k+', label="Actual")
+    plt.plot(*pred, 'r-', label="Predicted")
+    plt.legend()
     plt.show()
