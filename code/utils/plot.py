@@ -8,11 +8,14 @@ def plot_data(xs: np.ndarray, ys: np.ndarray) -> None:
     plt.show()
 
 
-def plot_loss(ys: np.ndarray) -> None:
+def plot_loss(train_ys: np.ndarray, val_ys: np.ndarray = []) -> None:
     plt.figure()
-    plt.plot(range(1, len(ys)+1), ys)  # start from 1
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
+    plt.plot(range(1, len(train_ys)+1), train_ys, label="Training")  # start from 1
+    if len(val_ys):
+        plt.plot(range(1, len(val_ys)+1), val_ys, label="Validation")
+    plt.legend()
     plt.show()
 
 
