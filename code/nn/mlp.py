@@ -18,12 +18,13 @@ DERIVATIVE = {
 
 
 class MultilayerPerceptron:
-    def __init__(self, layers: list[tuple[int, str]], optimiser: Optimiser) -> None:
+    def __init__(self, layers: list[tuple[int, str]], optimiser: Optimiser, l2_reg: float = 1e-2) -> None:
         self.layers = layers  # [(layer size, activation function), ...]
         self.optimiser = optimiser
         self.weights = [None] * len(layers)
         self.biases = [None] * len(layers)
         self.x_mean, self.x_std = None, None
+        self.l2_reg = l2_reg  # L2-Regularisation lambda
         self._init_params()
 
 
@@ -104,7 +105,14 @@ class MultilayerPerceptron:
         Returns
             The loss value calculated between the network output and actual value
         """
-        return 0.5 * np.sum((output - actual)**2)
+        sse = 0.5 * np.sum((output - actual)**2)
+
+        reg_loss = 0.0
+        if self.l2_reg > 0:
+            for w in self.weights[1:]:
+                reg_loss += 0.5 * self.l2_reg * np.sum(w ** 2)
+        
+        return sse + reg_loss 
 
 
     def _backprop(self, cache: list[tuple[np.ndarray, np.ndarray]], y: np.ndarray) -> tuple[list[np.ndarray], list[np.ndarray]]:
@@ -136,6 +144,9 @@ class MultilayerPerceptron:
 
         # Loss function gradients
         grad_w[-1] = delta @ dz_dw.T
+        if self.l2_reg > 0:
+            grad_w[-1] += self.l2_reg * self.weights[-1]
+
         grad_b[-1] = delta * dz_db
         grad_prev = dz_dprev.T @ delta
 
@@ -150,6 +161,9 @@ class MultilayerPerceptron:
             delta = dL_da * da_dz
 
             grad_w[i] = delta @ a_prev.T
+            if self.l2_reg > 0:
+                grad_w[i] += self.l2_reg * self.weights[i]
+
             grad_b[i] = delta
             grad_prev = self.weights[i].T @ delta
 
