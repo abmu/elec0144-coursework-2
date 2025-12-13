@@ -23,7 +23,7 @@ class MultilayerPerceptron:
         self.optimiser = optimiser
         self.weights = [None] * len(layers)
         self.biases = [None] * len(layers)
-        self.x_min, self.x_max = None, None
+        self.x_mean, self.x_std = None, None
         self._init_params()
 
 
@@ -40,9 +40,16 @@ class MultilayerPerceptron:
         for i in range(1, len(self.layers)):
             prev_layer = self.layers[i-1][0]
             next_layer = self.layers[i][0]
-            # Glorot initialisation
-            limit = np.sqrt(1 / prev_layer)
-            w = rng.normal(0, limit, size=(next_layer, prev_layer))
+            func = self.layers[i][1]
+
+            if func == 'relu':
+                # He initialisation
+                std = np.sqrt(2.0 / prev_layer)
+            else:  # linear, tanh, sigmoid
+                # Glorot initialisation
+                std = np.sqrt(2.0 / (prev_layer + next_layer))
+
+            w = rng.normal(0, std, size=(next_layer, prev_layer))
             b = np.zeros((next_layer, 1))
             self.weights[i] = w
             self.biases[i] = b
@@ -151,17 +158,20 @@ class MultilayerPerceptron:
 
     def _normalise_xs(self, xs: np.ndarray) -> np.ndarray:
         """
-        Normalise the input to between [-1, 1]
+        Normalise the input
 
         Args:
             xs: Input values
 
         Returns:
-            Normalised output values between [-1, 1]
+            Normalised output values
         """
-        if self.x_min is None or self.x_max is None:
+        # if self.x_min is None or self.x_max is None:
+        #     return xs
+        # return 2 * (xs - self.x_min) / (self.x_max - self.x_min) - 1
+        if self.x_mean is None or self.x_std is None:
             return xs
-        return 2 * (xs - self.x_min) / (self.x_max - self.x_min) - 1
+        return (xs - self.x_mean) / (self.x_std + 1e-8)
     
 
     def train(self, xs: np.ndarray, ys: np.ndarray, iterations: int, loss_goal: float = 1e-3) -> list[np.float64]:
@@ -178,7 +188,7 @@ class MultilayerPerceptron:
             A list of the total losses per iteration 
         """
         # Normalise input
-        self.x_min, self.x_max = xs.min(), xs.max()
+        self.x_mean, self.x_std = xs.mean(), xs.std()
         xs_norm = self._normalise_xs(xs)
 
         # Train neural network
