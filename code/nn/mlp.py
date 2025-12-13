@@ -18,13 +18,13 @@ DERIVATIVE = {
 
 
 class MultilayerPerceptron:
-    def __init__(self, layers: list[tuple[int, str]], optimiser: Optimiser, l2_reg: float = 1e-2) -> None:
+    def __init__(self, layers: list[tuple[int, str]], optimiser: Optimiser, l2_reg: float = 0.0) -> None:
         self.layers = layers  # [(layer size, activation function), ...]
         self.optimiser = optimiser
         self.weights = [None] * len(layers)
         self.biases = [None] * len(layers)
         self.x_mean, self.x_std = None, None
-        self.l2_reg = l2_reg  # L2-Regularisation lambda
+        self.l2_reg = l2_reg  # L2-Regularisation lambda, recommended to set as 1e-2
         self._init_params()
 
 
@@ -105,14 +105,14 @@ class MultilayerPerceptron:
         Returns
             The loss value calculated between the network output and actual value
         """
-        sse = 0.5 * np.sum((output - actual)**2)
+        error = 0.5 * np.sum((output - actual)**2)  # instantaneous squared error
 
         reg_loss = 0.0
         if self.l2_reg > 0:
             for w in self.weights[1:]:
                 reg_loss += 0.5 * self.l2_reg * np.sum(w ** 2)
         
-        return sse + reg_loss 
+        return error + reg_loss 
 
 
     def _backprop(self, cache: list[tuple[np.ndarray, np.ndarray]], y: np.ndarray) -> tuple[list[np.ndarray], list[np.ndarray]]:
@@ -188,7 +188,7 @@ class MultilayerPerceptron:
         return (xs - self.x_mean) / (self.x_std + 1e-8)
     
 
-    def train(self, xs: np.ndarray, ys: np.ndarray, iterations: int, loss_goal: float = 1e-3) -> list[np.float64]:
+    def train(self, xs: np.ndarray, ys: np.ndarray, iterations: int, loss_goal: float = 1e-4) -> list[np.float64]:
         """
         Train the neural netwrok on a given data set
 
@@ -207,27 +207,29 @@ class MultilayerPerceptron:
 
         # Train neural network
         self.optimiser.reset()
+        n = len(xs)
         losses = []
         for epoch in range(1, iterations+1):
-            error_sse = 0  # sum of squared errors
+            total_loss = 0
 
             for i, (x, y) in enumerate(zip(xs_norm, ys)):
                 cache = self._forward(x)
                 _, y_pred = cache[-1]
-                error_sse += self._loss(y_pred, y)
+                total_loss += self._loss(y_pred, y)
 
                 grad_w, grad_b = self._backprop(cache, y)
                 self.optimiser.update(self.weights, self.biases, grad_w, grad_b)
-                
-            losses.append(error_sse)
+            
+            mean_loss = total_loss / n
+            losses.append(mean_loss)
 
-            if error_sse < loss_goal:
+            if mean_loss < loss_goal:
                 # Stop training early
-                print(f'Epoch: {epoch}, Loss = {error_sse:.4f} < Early stopping threshold = {loss_goal:.4f}')
+                print(f'Epoch: {epoch}, Loss = {mean_loss:.6f} < Early stopping threshold = {loss_goal:.6f}')
                 break
 
             if epoch % 1000 == 0:
-                print(f'Epoch: {epoch}, Loss = {error_sse:.4f}')
+                print(f'Epoch: {epoch}, Loss = {mean_loss:.6f}')
         
         return losses
     

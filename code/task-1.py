@@ -14,7 +14,7 @@ layers = [
     (1, 'linear'),
 ]
 
-optimiser = SGD()
+optimiser = Adam(lr=0.001)
 
 # Train and evaluate neural network
 mlp = MultilayerPerceptron(
