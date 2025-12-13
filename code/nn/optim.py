@@ -14,9 +14,9 @@ class Optimiser(ABC):
 
 
     @abstractmethod
-    def update(self, weights: list[np.ndarray], biases: list[np.ndarray], grad_w: list[np.ndarray], grad_b: list[np.ndarray]) -> None:
+    def update(self, weights: list[np.ndarray], biases: list[np.ndarray], grad_w: list[np.ndarray], grad_b: list[np.ndarray]) -> tuple[list[np.ndarray], list[np.ndarray]]:
         """
-        Update gradients based on internal state
+        Update weights and biases based on internal state and gradients
         """
         pass
 
@@ -35,10 +35,12 @@ class SGD(Optimiser):
         pass
 
     
-    def update(self, weights: list[np.ndarray], biases: list[np.ndarray], grad_w: list[np.ndarray], grad_b: list[np.ndarray]) -> None:
+    def update(self, weights: list[np.ndarray], biases: list[np.ndarray], grad_w: list[np.ndarray], grad_b: list[np.ndarray]) -> tuple[list[np.ndarray], list[np.ndarray]]:
         for i in range(1, len(weights)):
             weights[i] -= self.lr * grad_w[i]
             biases[i] -= self.lr * grad_b[i]
+
+        return weights, biases
 
 
 class Adam(Optimiser):
@@ -86,7 +88,7 @@ class Adam(Optimiser):
         self.t = 0
 
 
-    def update(self, weights: list[np.ndarray], biases: list[np.ndarray], grad_w: list[np.ndarray], grad_b: list[np.ndarray]) -> None:
+    def update(self, weights: list[np.ndarray], biases: list[np.ndarray], grad_w: list[np.ndarray], grad_b: list[np.ndarray]) -> tuple[list[np.ndarray], list[np.ndarray]]:
         if not self.initialised:  # lazy initialisation
             self._initialise(weights, biases)
 
@@ -110,3 +112,5 @@ class Adam(Optimiser):
             # Weights and biases update
             weights[i] -= self.lr * m_w_hat / (np.sqrt(v_w_hat) + self.epsilon)
             biases[i] -= self.lr * m_b_hat / (np.sqrt(v_b_hat) + self.epsilon)
+
+        return weights, biases

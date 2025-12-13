@@ -170,6 +170,20 @@ class MultilayerPerceptron:
         return grad_w, grad_b
     
 
+    @property
+    def weights_biases(self) -> tuple[list[np.ndarray], list[np.ndarray]]:
+        """
+        Create a deep copy of the weights and biases
+
+        Returns:
+            A tuple of a deep copy of the weights and biases
+        """
+        n = len(self.weights)
+        weights = [None] + [self.weights[i].copy() for i in range(1, n)]
+        biases = [None] + [self.biases[i].copy() for i in range(1, n)]
+        return weights, biases
+
+
     def _normalise_xs(self, xs: np.ndarray) -> np.ndarray:
         """
         Normalise the input
@@ -212,7 +226,7 @@ class MultilayerPerceptron:
         return xs_train, ys_train, xs_val, ys_val
     
 
-    def train(self, xs: np.ndarray, ys: np.ndarray, iterations: int, loss_goal: float = 1e-4) -> list[np.float64]:
+    def train(self, xs: np.ndarray, ys: np.ndarray, iterations: int, train_ratio: float = 1.0, train_loss_goal: float = 1e-4, val_patience: int = 10) -> tuple[list[np.float64], list[np.float64]]:
         """
         Train the neural netwrok on a given data set
 
@@ -220,41 +234,85 @@ class MultilayerPerceptron:
             xs: Input values
             ys: Truth output values
             iterations: The number of training iterations to run
-            loss_goal: The early stopping threshold for training
+            train_ratio: Desired train-validation split
+            train_loss_goal: The early stopping threshold for training
+            val_patience: How long to allow no improvement on validation loss
 
         Returns:
-            A list of the average losses per iteration 
+            The average train losses per iteration and average validation losses
         """
-        # Normalise input
-        self.x_mean, self.x_std = xs.mean(), xs.std()
-        xs_norm = self._normalise_xs(xs)
+        xs_train, ys_train, xs_val, ys_val = self._train_val_split(xs, ys, train_ratio)
 
-        # Train neural network
+        # Normalise input based on training data
+        self.x_mean, self.x_std = xs_train.mean(), xs_train.std()
+        xs_train_norm = self._normalise_xs(xs_train)
+        xs_val_norm = self._normalise_xs(xs_val)
+
+        # Train and validate neural network
         self.optimiser.reset()
-        losses = []
-        for epoch in range(1, iterations+1):
-            total_loss = 0
+        train_losses = []
+        val_losses = []
 
-            for i, (x, y) in enumerate(zip(xs_norm, ys)):
+        # Best validation loss
+        best_val_loss = np.inf
+        best_val_epoch = -1
+        best_val_weights, best_val_biases = self.weights_biases
+        val_patience_count = 0
+
+        for epoch in range(1, iterations+1):
+
+            # Training
+            total_train_loss = 0
+
+            for i, (x, y) in enumerate(zip(xs_train_norm, ys_train)):
                 cache = self._forward(x)
                 _, y_pred = cache[-1]
-                total_loss += self._loss(y_pred, y)
+                total_train_loss += self._loss(y_pred, y)
 
                 grad_w, grad_b = self._backprop(cache, y)
-                self.optimiser.update(self.weights, self.biases, grad_w, grad_b)
+                self.weights, self.biases = self.optimiser.update(*self.weights_biases, grad_w, grad_b)
             
-            mean_loss = total_loss / len(xs)
-            losses.append(mean_loss)
+            mean_train_loss = total_train_loss / len(xs_train)
+            train_losses.append(mean_train_loss)
 
-            if mean_loss < loss_goal:
-                # Stop training early
-                print(f'Epoch: {epoch}, Loss = {mean_loss:.6f} < Early stopping threshold = {loss_goal:.6f}')
+            # Validation
+            if len(xs_val) > 0:
+                total_val_loss = 0
+
+                for i, (x, y) in enumerate(zip(xs_val_norm, ys_val)):
+                    cache = self._forward(x)
+                    _, y_pred = cache[-1]
+                    total_val_loss += self._loss(y_pred, y)
+
+                mean_val_loss = total_val_loss / len(xs_val)
+                val_losses.append(mean_val_loss)
+
+                # Check if validation loss has improved
+                if mean_val_loss < best_val_loss:
+                    best_val_loss = mean_val_loss
+                    best_val_epoch = epoch
+                    best_val_weights, best_val_biases = self.weights_biases
+                    val_patience_count = 0
+                else:
+                    val_patience_count += 1
+
+                if val_patience_count >= val_patience:
+                    # Validation loss no longer improving, so break
+                    self.weights, self.biases = best_val_weights, best_val_biases
+                    print(f'[STOPPING!] Epoch: {epoch}, Best Validation Loss = {best_val_loss:.6f} at epoch {best_val_epoch}')
+                    break
+
+            if not len(xs_val) and mean_train_loss < train_loss_goal:
+                # Stop training early -- if there is no validation set and training loss goal reached
+                print(f'[STOPPING!] Epoch: {epoch}, Train Loss = {mean_train_loss:.6f} < Train Goal = {train_loss_goal}')
                 break
-
+            
+            # Progress output
             if epoch % 1000 == 0:
-                print(f'Epoch: {epoch}, Loss = {mean_loss:.6f}')
+                val_loss_msg = f', Validation Loss = {mean_val_loss:.6f}' if len(xs_val) else ''
+                print(f'Epoch: {epoch}, Train Loss = {mean_train_loss:.6f}{val_loss_msg}')
         
-        return losses
+        return train_losses, val_losses
     
 
     def predict(self, xs: np.ndarray) -> np.ndarray:
