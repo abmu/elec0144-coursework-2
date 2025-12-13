@@ -29,3 +29,39 @@ def generate_polynomial_data(
     # Generate y values from polynomial -- as shown in coursework specification
     ys = 0.8 * xs**3 + 0.3 * xs**2 + -0.4 * xs + rng.normal(mean, spread, num)
     return xs, ys
+
+
+def parse_classification_data(filename: str, epsilon: float = 0.1) -> tuple[np.ndarray, np.ndarray, dict[str, int]]:
+    """
+    Parse the data within a file to get an input and output values dataset
+
+    Args:
+        filename: Name of the file
+        epsilon: Value used when encoding the labels as numeric values -- smooth one-hot
+
+    Returns:
+        The input and truth output values, and the dictionary used to convert labels to the corresponding index
+    """
+    xs = []
+    ys_labels = []
+
+    # Read data from file
+    with open(filename, 'r') as f:
+        for line in f:
+            *features, label = line.strip().split(',')
+            xs.append(list(map(float, features)))
+            ys_labels.append(label)
+
+    xs = np.array(xs)
+
+    # Convert labels to index value
+    unique_labels = sorted(set(ys_labels))
+    label_to_idx = {l: i for i, l in enumerate(unique_labels)}
+    num_classes = len(unique_labels)
+
+    # Smooth one-hot (represent label as a vector where one element is "on" and all others are "off")
+    ys = np.full((len(ys_labels), num_classes), epsilon / (num_classes - 1))
+    for i, label in enumerate(ys_labels):
+        ys[i, label_to_idx[label]] = 1.0 - epsilon
+    
+    return xs, ys, label_to_idx

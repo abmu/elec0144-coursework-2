@@ -19,7 +19,7 @@ DERIVATIVE = {
 
 class MultilayerPerceptron:
     def __init__(self, layers: list[tuple[int, str]], optimiser: Optimiser, l2_reg: float = 0.0, seed: int = 144) -> None:
-        self.layers = layers  # [(layer size, activation function), ...]
+        self.layers = layers.copy()  # [(layer size, activation function), ...]
         self.optimiser = optimiser
         self.weights = [None] * len(layers)
         self.biases = [None] * len(layers)
@@ -243,7 +243,7 @@ class MultilayerPerceptron:
         """
         xs_train, ys_train, xs_val, ys_val = self._train_val_split(xs, ys, train_ratio)
 
-        # Normalise input based on training data
+        # Normalise input based on training data only
         self.x_mean, self.x_std = xs_train.mean(), xs_train.std()
         xs_train_norm = self._normalise_xs(xs_train)
         xs_val_norm = self._normalise_xs(xs_val)
