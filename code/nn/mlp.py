@@ -202,62 +202,39 @@ class MultilayerPerceptron:
         return (xs - self.x_mean) / (self.x_std + 1e-8)
     
 
-    def _train_val_split(self, xs: np.ndarray, ys: np.ndarray, ratio: float = 0.7) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-        """
-        Split the input dataset into training and validation sections
-
-        Args:
-            xs: Input values
-            ys: Truth output values
-            ratio: Desired train-validation split -- e.g. 0.7 means 70% training, 30% validation
-
-        Returns:
-            Train dataset followed by validation dataset
-        """
-        # Shuffle data
-        idx = self.rng.permutation(len(xs))
-        xs, ys = xs[idx], ys[idx]
-
-        # Split data
-        split_idx = int(ratio * len(xs))
-        xs_train, xs_val = xs[:split_idx], xs[split_idx:]
-        ys_train, ys_val = ys[:split_idx], ys[split_idx:]
-
-        return xs_train, ys_train, xs_val, ys_val
-    
-
-    def train(self, xs: np.ndarray, ys: np.ndarray, iterations: int, train_ratio: float = 1.0, train_loss_goal: float = 1e-4, val_patience: int = 10) -> tuple[list[np.float64], list[np.float64]]:
+    def train(self, iterations: int, train_data: tuple[np.ndarray, np.ndarray], val_data: tuple[np.ndarray, np.ndarray] = None, train_loss_goal: float = 1e-4, val_patience: int = 10) -> tuple[list[np.float64], list[np.float64]]:
         """
         Train the neural netwrok on a given data set
 
         Args:
-            xs: Input values
-            ys: Truth output values
             iterations: The number of training iterations to run
-            train_ratio: Desired train-validation split
+            train_data: Training input values and output truth values
+            val_data: Validation input values and output truth values
             train_loss_goal: The early stopping threshold for training
             val_patience: How long to allow no improvement on validation loss
 
         Returns:
             The average train losses per iteration and average validation losses
         """
-        xs_train, ys_train, xs_val, ys_val = self._train_val_split(xs, ys, train_ratio)
-
         # Normalise input based on training data only
-        self.x_mean, self.x_std = xs_train.mean(), xs_train.std()
+        xs_train, ys_train = train_data
+        self.x_mean, self.x_std = xs_train.mean(axis=0), xs_train.std(axis=0)
         xs_train_norm = self._normalise_xs(xs_train)
-        xs_val_norm = self._normalise_xs(xs_val)
+
+        if val_data:
+            xs_val, ys_val = val_data
+            xs_val_norm = self._normalise_xs(xs_val)
+
+            # Best validation loss
+            best_val_loss = np.inf
+            best_val_epoch = -1
+            best_val_weights, best_val_biases = self.weights_biases
+            val_patience_count = 0
 
         # Train and validate neural network
         self.optimiser.reset()
         train_losses = []
         val_losses = []
-
-        # Best validation loss
-        best_val_loss = np.inf
-        best_val_epoch = -1
-        best_val_weights, best_val_biases = self.weights_biases
-        val_patience_count = 0
 
         for epoch in range(1, iterations+1):
 
@@ -276,7 +253,7 @@ class MultilayerPerceptron:
             train_losses.append(mean_train_loss)
 
             # Validation
-            if len(xs_val) > 0:
+            if val_data:
                 total_val_loss = 0
 
                 for i, (x, y) in enumerate(zip(xs_val_norm, ys_val)):
@@ -287,7 +264,7 @@ class MultilayerPerceptron:
                 mean_val_loss = total_val_loss / len(xs_val)
                 val_losses.append(mean_val_loss)
 
-                # Check if validation loss has improved
+                # Check if validation loss has improved -- https://en.wikipedia.org/wiki/Early_stopping#Validation-based_early_stopping
                 if mean_val_loss < best_val_loss:
                     best_val_loss = mean_val_loss
                     best_val_epoch = epoch
@@ -302,14 +279,14 @@ class MultilayerPerceptron:
                     print(f'[STOPPING!] Epoch: {epoch}, Best Validation Loss = {best_val_loss:.6f} at epoch {best_val_epoch}')
                     break
 
-            if not len(xs_val) and mean_train_loss < train_loss_goal:
+            if not val_data and mean_train_loss < train_loss_goal:
                 # Stop training early -- if there is no validation set and training loss goal reached
                 print(f'[STOPPING!] Epoch: {epoch}, Train Loss = {mean_train_loss:.6f} < Train Goal = {train_loss_goal}')
                 break
             
             # Progress output
             if epoch % 1000 == 0:
-                val_loss_msg = f', Validation Loss = {mean_val_loss:.6f}' if len(xs_val) else ''
+                val_loss_msg = f', Validation Loss = {mean_val_loss:.6f}' if val_data else ''
                 print(f'Epoch: {epoch}, Train Loss = {mean_train_loss:.6f}{val_loss_msg}')
         
         return train_losses, val_losses

@@ -22,7 +22,7 @@ mlp = MultilayerPerceptron(
     optimiser=optimiser
 )
 
-train_losses, _ = mlp.train(xs, ys, iterations=10000)
+train_losses, _ = mlp.train(iterations=10000, train_data=(xs, ys))
 plot_loss(train_losses)
 
 # Run on test data
