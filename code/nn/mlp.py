@@ -282,7 +282,7 @@ class MultilayerPerceptron:
 
             if not val_data and mean_train_loss < train_loss_goal:
                 # Stop training early -- if there is no validation set and training loss goal reached
-                print(f'[STOPPING!] Epoch: {epoch}, Train Loss = {mean_train_loss:.6f} < Train Goal = {train_loss_goal}')
+                print(f'[STOPPING!] Epoch: {epoch}, Train Loss = {mean_train_loss} < Train Goal = {train_loss_goal}')
                 break
             
             # Progress output
@@ -304,4 +304,4 @@ class MultilayerPerceptron:
             Predicted output values for the given input
         """
         xs_norm = self._normalise_xs(xs)
-        return np.array([self._forward(x)[-1][1].item() for x in xs_norm])
+        return np.array([self._forward(x)[-1][1].flatten() for x in xs_norm])

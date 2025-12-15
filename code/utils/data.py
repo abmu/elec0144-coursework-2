@@ -57,7 +57,7 @@ def train_val_split(xs: np.ndarray, ys: np.ndarray, ratio: float = 0.7, seed: in
     return xs_train, ys_train, xs_val, ys_val
 
 
-def parse_classification_data(filename: str, epsilon: float = 0.1) -> tuple[np.ndarray, np.ndarray, dict[str, int]]:
+def parse_classification_data(filename: str, epsilon: float = 0.1) -> tuple[np.ndarray, np.ndarray, dict[int, str]]:
     """
     Parse the data within a file to get an input and output values dataset
 
@@ -66,7 +66,7 @@ def parse_classification_data(filename: str, epsilon: float = 0.1) -> tuple[np.n
         epsilon: Value used when encoding the labels as numeric values -- smooth one-hot
 
     Returns:
-        The input and truth output values, and the dictionary used to convert labels to the corresponding index
+        The input and truth output values, and a dictionary that can be used to convert the indexes into corresponding labels
     """
     xs = []
     ys_labels = []
@@ -90,4 +90,5 @@ def parse_classification_data(filename: str, epsilon: float = 0.1) -> tuple[np.n
     for i, label in enumerate(ys_labels):
         ys[i, label_to_idx[label]] = 1.0 - epsilon
     
-    return xs, ys, label_to_idx
+    idx_to_label = {i: l for l, i in label_to_idx.items()}
+    return xs, ys, idx_to_label
