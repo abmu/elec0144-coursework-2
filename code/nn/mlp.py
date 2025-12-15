@@ -69,8 +69,7 @@ class MultilayerPerceptron:
         cache = [None] * len(self.layers)
 
         # Input layer
-        input_size = self.layers[0][0]
-        x = input.reshape(input_size, 1)
+        x = input.reshape(-1, 1)
         cache[0] = (np.array([]), x)  # no activation function for first layer
 
         # Hidden layers
@@ -105,6 +104,7 @@ class MultilayerPerceptron:
         Returns
             The loss value calculated between the network output and actual value
         """
+        actual = actual.reshape(-1, 1)
         error = 0.5 * np.sum((output - actual)**2)  # instantaneous squared error
 
         reg_loss = 0.0
@@ -130,6 +130,7 @@ class MultilayerPerceptron:
         grad_b = [None] * len(self.layers)
 
         # Output layer
+        y = y.reshape(-1, 1)
         z, a = cache[-1]
         func = self.layers[-1][1]
         a_prev = cache[-2][1]
