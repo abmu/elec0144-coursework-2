@@ -1,6 +1,6 @@
 from nn import MultilayerPerceptron
 from nn.optim import SGD, Adam
-from utils import parse_classification_data, train_val_split, plot_loss, plot_prediction, plot_data
+from utils import parse_classification_data, data_split, plot_loss, plot_prediction, plot_data
 
 
 layers = [
@@ -20,13 +20,13 @@ mlp = MultilayerPerceptron(
 filename = 'task-2-iris.txt'
 xs, ys, idx_to_label = parse_classification_data(filename)
 
-xs_train, ys_train, xs_val, ys_val = train_val_split(xs, ys, ratio=0.7)
+xs_train, ys_train, xs_val, ys_val = data_split(xs, ys, ratio=0.7)
 
 train_losses, val_losses = mlp.train(
     iterations=10000,
     train_data=(xs_train, ys_train),
     val_data=(xs_val, ys_val),
-    val_patience=float('inf')  # max patience for testing purposes
+    # val_patience=float('inf')  # max patience for testing purposes
 )
 plot_loss(train_losses, val_losses)
 
