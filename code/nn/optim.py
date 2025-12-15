@@ -21,7 +21,6 @@ class Optimiser(ABC):
         pass
 
 
-# Maybe add SGD + momentum optimiser algorithm
 class Momentum(Optimiser):
     pass
 

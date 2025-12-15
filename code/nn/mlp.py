@@ -265,7 +265,7 @@ class MultilayerPerceptron:
                 mean_val_loss = total_val_loss / len(xs_val)
                 val_losses.append(mean_val_loss)
 
-                # Check if validation loss has improved -- https://en.wikipedia.org/wiki/Early_stopping#Validation-based_early_stopping
+                # Check if validation loss has improved
                 if mean_val_loss < best_val_loss:
                     best_val_loss = mean_val_loss
                     best_val_epoch = epoch

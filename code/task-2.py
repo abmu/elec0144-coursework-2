@@ -2,6 +2,9 @@ from nn import MultilayerPerceptron
 from nn.optim import SGD, Adam
 from utils import parse_classification_data, data_split, plot_loss, plot_prediction, plot_data
 
+# TODO
+# Measure and display accuracy of neural network during training -- Numner of correct predictions / Total predictions
+
 
 layers = [
     (4, None),

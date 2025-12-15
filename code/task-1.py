@@ -2,6 +2,9 @@ from nn import MultilayerPerceptron
 from nn.optim import SGD, Adam
 from utils import generate_polynomial_data, plot_loss, plot_prediction
 
+# TODO
+# Maybe add SGD + momentum optimiser algorithm
+
 
 # Get training data
 xs, ys = generate_polynomial_data(start=-1, stop=1, step=0.05)
