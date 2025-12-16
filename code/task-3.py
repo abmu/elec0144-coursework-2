@@ -4,6 +4,11 @@ from torch.utils.data import DataLoader, random_split
 from utils import plot_loss, plot_acc
 
 
+# TODO
+# Maybe improve image dataset -- remove images that do not look similar with the rest of the images
+# Improve results visualisation -- check Transfer Learning example in week 5 lecture notes on Moodle
+
+
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
