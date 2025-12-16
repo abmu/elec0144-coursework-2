@@ -70,4 +70,28 @@ def get_alexnet(num_classes: int) -> models.AlexNet:
     return alexnet
 
 
-print(get_alexnet(len(classes)))
+def get_googlenet(num_classes: int) -> models.GoogLeNet:
+    """
+    Get the GoogLeNet model, with the final classifier layer adjusted
+
+    Args:
+        num_classes: The new number of classes in the final layer
+
+    Returns:
+        The GoogLeNet model
+    """
+    # Setup GoogLeNet
+    googlenet = models.googlenet(weights=models.GoogLeNet_Weights.DEFAULT, aux_logits=False)
+
+    # Freeze layers
+    for param in googlenet.parameters():
+        param.requires_grad = False
+
+    # Replace final fully connected layer
+    num_features = googlenet.fc.in_features
+    googlenet.fc = torch.nn.Linear(num_features, num_classes)
+
+    googlenet = googlenet.to(DEVICE)
+    return googlenet
+
+print(get_googlenet(len(classes)))
