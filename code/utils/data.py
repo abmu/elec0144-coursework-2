@@ -92,3 +92,23 @@ def parse_classification_data(filename: str, epsilon: float = 0.1) -> tuple[np.n
     
     idx_to_label = {i: l for l, i in label_to_idx.items()}
     return xs, ys, idx_to_label
+
+
+def parse_grid_data(filename: str) -> list[list[str]]:
+    """
+    Parse the data within a file to get the grid-world
+
+    Args:
+        filename: Name of the file
+
+    Returns:
+        The grid-world encoded as a 2D array
+    """
+    grid = []
+
+    # Read data from file
+    with open(filename, 'r') as f:
+        for line in f:
+            grid.append(line.strip().split(','))
+    
+    return grid

@@ -3,7 +3,6 @@ from torchvision import models, datasets, transforms
 from torch.utils.data import DataLoader, random_split
 from utils import plot_loss, plot_acc
 
-
 # TODO
 # Maybe improve image dataset -- remove images that do not look similar with the rest of the images
 # Improve results visualisation -- check Transfer Learning example in week 5 lecture notes on Moodle
@@ -185,7 +184,7 @@ def train_model(model: torch.nn.Module, train_loader: DataLoader, val_loader: Da
     print(f'=== Training {type(model).__name__} ===')
 
     criterion = torch.nn.CrossEntropyLoss()
-    optimiser = torch.optim.Adam(
+    optimiser = torch.optim.SGD(
         filter(lambda p: p.requires_grad, model.parameters()),
         lr=1e-3
     )
@@ -223,7 +222,7 @@ if __name__ == "__main__":
 
     print(f'Dataset: "{foldername}" | Classes: {classes}\n')
 
-    iterations = 15
+    iterations = 30
 
     alexnet = get_alexnet(output_classes=num_classes)
     a_train_losses, a_train_accs, a_val_losses, a_val_accs = train_model(alexnet, train_loader, val_loader, epochs=iterations)
