@@ -6,9 +6,6 @@ from utils import generate_polynomial_data, plot_loss, plot_prediction
 # Maybe add SGD + momentum optimiser algorithm
 
 
-# Get training data
-xs, ys = generate_polynomial_data(start=-1, stop=1, step=0.05)
-
 # Define network layers and optimiser
 layers = [
     # (size, activation)
@@ -19,16 +16,20 @@ layers = [
 
 optimiser = Adam(lr=0.001)
 
-# Train and evaluate neural network
+# Setup neural network
 mlp = MultilayerPerceptron(
     layers=layers,
     optimiser=optimiser
 )
 
-train_losses, _ = mlp.train(iterations=10000, train_data=(xs, ys))
+# Get training data
+xs_train, ys_train = generate_polynomial_data(start=-1, stop=1, step=0.05)
+
+# Evaluate losses
+train_losses, _ = mlp.train(iterations=10000, train_data=(xs_train, ys_train))
 plot_loss(train_losses)
 
 # Run on test data
-xtest, _ = generate_polynomial_data(start=-0.97, stop=0.93, step=0.1)
-ypreds = mlp.predict(xtest)
-plot_prediction(pred=(xtest, ypreds), actual=(xs, ys))
+xs_test, _ = generate_polynomial_data(start=-0.97, stop=0.93, step=0.1)
+ys_pred = mlp.predict(xs_test)
+plot_prediction(pred=(xs_test, ys_pred), actual=(xs_train, ys_train))

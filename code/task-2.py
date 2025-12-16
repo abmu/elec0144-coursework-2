@@ -33,15 +33,15 @@ train_losses, val_losses = mlp.train(
 )
 plot_loss(train_losses, val_losses)
 
-xtest, ytest = xs_val, ys_val
-ypreds = mlp.predict(xtest)
+xs_test, ys_test = xs_val, ys_val
+ys_pred = mlp.predict(xs_test)
 
 # Convert from 3 outputs to 1 maximum value output -- predicted class
-ytest = ytest.argmax(axis=1)
-ypreds = ypreds.argmax(axis=1)
+ys_test = ys_test.argmax(axis=1)
+ys_pred = ys_pred.argmax(axis=1)
 
-xaxis = range(1, len(xtest)+1)
-plot_prediction(pred=(xaxis, ypreds), actual=(xaxis, ytest))
+xaxis = range(1, len(xs_test)+1)
+plot_prediction(pred=(xaxis, ys_pred), actual=(xaxis, ys_test))
 
-difference = ((ypreds - ytest) != 0).astype(int)
+difference = ((ys_pred - ys_test) != 0).astype(int)
 plot_data(xaxis, difference)
