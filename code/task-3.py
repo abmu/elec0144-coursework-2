@@ -42,9 +42,6 @@ def get_train_val_loaders() -> tuple[DataLoader, DataLoader, list[str]]:
     return train_loader, val_loader, class_names
 
 
-train_loader, val_loader, classes = get_train_val_loaders()
-
-
 def get_alexnet(num_classes: int) -> models.AlexNet:
     """
     Get the AlexNet model, with the final classifier layer adjusted
@@ -81,7 +78,7 @@ def get_googlenet(num_classes: int) -> models.GoogLeNet:
         The GoogLeNet model
     """
     # Setup GoogLeNet
-    googlenet = models.googlenet(weights=models.GoogLeNet_Weights.DEFAULT, aux_logits=False)
+    googlenet = models.googlenet(weights=models.GoogLeNet_Weights.DEFAULT)
 
     # Freeze layers
     for param in googlenet.parameters():
@@ -94,4 +91,93 @@ def get_googlenet(num_classes: int) -> models.GoogLeNet:
     googlenet = googlenet.to(DEVICE)
     return googlenet
 
-print(get_googlenet(len(classes)))
+
+def get_optimiser(model: torch.nn.Module) -> torch.optim.Optimizer:
+    """
+    Get the optimiser to be used with the model
+
+    Args:
+        model: The neural network model
+
+    Returns:
+        The optimiser
+    """
+    optimiser = torch.optim.Adam(
+        filter(lambda p: p.requires_grad, model.parameters()),
+        lr=1e-3
+    )
+
+    return optimiser
+
+
+def train(model: torch.nn.Module, loader: DataLoader, criterion: torch.nn.Module, optimiser: torch.optim.Optimizer) -> tuple[float, float]:
+    """
+    Train the model for a single epoch
+
+    Args:
+        model: The neural network model
+        loader: The training data loader
+        criterion: The loss function to be used
+        optimiser: The optimiser to be used
+
+    Returns:
+        The training loss and accuracy of the model during the epoch
+    """
+    model.train()
+    running_loss = 0.0
+    correct = 0
+    total = 0
+
+    for images, labels in loader:
+        images, labels = images.to(DEVICE), labels.to(DEVICE)
+
+        optimiser.zero_grad()
+        outputs = model(images)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimiser.step()
+
+        running_loss += loss.item()
+        _, preds = torch.max(outputs, dim=1)
+        correct += (preds == labels).sum().item()
+        total += labels.size(0)
+
+    return running_loss / len(loader), correct / total
+
+
+@torch.no_grad()
+def validate(model: torch.nn.Module, loader: DataLoader, criterion: torch.nn.Module) -> tuple[float, float]:
+    """
+    Validate the model for a single epoch
+
+    Args:
+        model: The neural network model
+        loader: The validation data loader
+        criterion: The loss function to be used
+
+    Returns:
+        The validation loss and accuracy of the model during the epoch
+    """
+    model.eval()
+    running_loss = 0.0
+    correct = 0
+    total = 0
+
+    for images, labels in loader:
+        images, labels = images.to(DEVICE), labels.to(DEVICE)
+
+        outputs = model(images)
+        loss = criterion(outputs, labels)
+
+        running_loss += loss.item()
+        _, preds = torch.max(outputs, dim=1)
+        correct += (preds == labels).sum().item()
+        total += labels.size(0)
+
+    return running_loss / len(loader), correct / total
+
+
+train_loader, val_loader, classes = get_train_val_loaders()
+criterion = torch.nn.CrossEntropyLoss()
+googlenet = get_googlenet(len(classes))
+train(googlenet, train_loader, criterion, get_optimiser(googlenet))
