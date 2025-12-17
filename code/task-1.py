@@ -1,10 +1,6 @@
 from nn import MultilayerPerceptron
-from nn.optim import SGD, Adam
+from nn.optim import SGD, Adam, SGDMomentum
 from utils import generate_polynomial_data, plot_loss, plot_prediction
-
-# TODO
-# Maybe add SGD + momentum optimiser algorithm
-
 
 # Define network layers and optimiser
 layers = [

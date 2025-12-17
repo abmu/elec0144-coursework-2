@@ -42,6 +42,60 @@ class SGD(Optimiser):
         return weights, biases
 
 
+class SGDMomentum(Optimiser):
+    def __init__(self, lr: float = 0.001, momentum: float = 0.9) -> None:
+        self.lr = lr
+        self.momentum = momentum
+
+        # Velocity terms
+        self.v_w = [None]
+        self.v_b = [None]
+
+        self.initialised = False
+
+    
+    def _initialise(self, weights: list[np.ndarray], biases: list[np.ndarray]) -> None:
+        """
+        Initialise velocity terms
+        """
+        n = len(weights)
+        self.v_w = [None] + [np.zeros_like(weights[i]) for i in range(1, n)]
+        self.v_b = [None] + [np.zeros_like(biases[i]) for i in range(1, n)]
+        self.initialised = True
+
+
+    def reset(self) -> None:
+        if not self.initialised:
+            return
+
+        for i in range(1, len(self.v_w)):
+            self.v_w[i].fill(0)
+            self.v_b[i].fill(0)
+
+
+    def update(
+        self,
+        weights: list[np.ndarray],
+        biases: list[np.ndarray],
+        grad_w: list[np.ndarray],
+        grad_b: list[np.ndarray]
+    ) -> tuple[list[np.ndarray], list[np.ndarray]]:
+
+        if not self.initialised:
+            self._initialise(weights, biases)
+
+        for i in range(1, len(weights)):
+            # Update velocity
+            self.v_w[i] = self.momentum * self.v_w[i] + grad_w[i]
+            self.v_b[i] = self.momentum * self.v_b[i] + grad_b[i]
+
+            # Update parameters
+            weights[i] -= self.lr * self.v_w[i]
+            biases[i] -= self.lr * self.v_b[i]
+
+        return weights, biases
+
+
 class Adam(Optimiser):
     def __init__(self, lr: float = 0.001, beta1: float = 0.9, beta2: float = 0.999, epsilon: float = 1e-8) -> None:
         self.beta1 = beta1
@@ -111,5 +165,9 @@ class Adam(Optimiser):
             # Weights and biases update
             weights[i] -= self.lr * m_w_hat / (np.sqrt(v_w_hat) + self.epsilon)
             biases[i] -= self.lr * m_b_hat / (np.sqrt(v_b_hat) + self.epsilon)
+
+
+
+
 
         return weights, biases
