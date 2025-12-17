@@ -21,10 +21,6 @@ class Optimiser(ABC):
         pass
 
 
-class Momentum(Optimiser):
-    pass
-
-
 class SGD(Optimiser):
     def __init__(self, lr: float = 0.001) -> None:
         self.lr = lr
@@ -165,9 +161,5 @@ class Adam(Optimiser):
             # Weights and biases update
             weights[i] -= self.lr * m_w_hat / (np.sqrt(v_w_hat) + self.epsilon)
             biases[i] -= self.lr * m_b_hat / (np.sqrt(v_b_hat) + self.epsilon)
-
-
-
-
 
         return weights, biases

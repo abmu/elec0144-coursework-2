@@ -1,6 +1,7 @@
 from nn import MultilayerPerceptron
-from nn.optim import SGD, Adam, SGDMomentum
+from nn.optim import SGD, SGDMomentum, Adam
 from utils import generate_polynomial_data, plot_loss, plot_prediction
+
 
 # Define network layers and optimiser
 layers = [
@@ -10,6 +11,7 @@ layers = [
     (1, 'linear'),
 ]
 
+# optimiser = SGD(lr=0.001)
 optimiser = Adam(lr=0.001)
 
 # Setup neural network
