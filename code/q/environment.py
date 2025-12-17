@@ -9,6 +9,7 @@ class Environment:
         'RIGHT': (0, 1)
     }
 
+    # Grid definitions
     START = 'S'
     OBSTACLE = '#'
     TERMINAL = 'T'
@@ -18,10 +19,11 @@ class Environment:
         self.grid = copy.deepcopy(grid)
         self.rows = len(self.grid)
         self.cols = len(self.grid[0]) if self.grid else 0
-        self.pos = self._find_start()
+        self.start = self._find_start()
+        self.pos = self.start
 
 
-    def _find_start(self) -> list[int]:
+    def _find_start(self) -> tuple[int]:
         """
         Finds the starting position in the grid
 
@@ -31,8 +33,15 @@ class Environment:
         for i in range(self.rows):
             for j in range(self.cols):
                 if self.grid[i][j] == self.START:
-                    return [i, j]
-        return [0, 0]  # default start
+                    return (i, j)
+        return (0, 0)  # default start
+    
+
+    def reset(self) -> None:
+        """
+        Reset the position to the start position
+        """
+        self.pos = self.start
 
 
     def move(self, action: str) -> tuple[bool, str]:
@@ -64,7 +73,7 @@ class Environment:
             return False, 'Cannot move into obstacle'
         
         # Update pos
-        self.pos = [new_x, new_y]
+        self.pos = (new_x, new_y)
         return True, None
 
 
@@ -90,3 +99,13 @@ class Environment:
         if cell[0] == self.START or cell[0] == self.TERMINAL:
             cell = cell[1:]
         return float(cell)
+    
+
+    def get_pos(self) -> tuple[int, int]:
+        """
+        Get current position
+
+        Returns:
+            A tuple which is the current position
+        """
+        return self.pos
