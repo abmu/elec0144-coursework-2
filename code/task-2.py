@@ -1,3 +1,7 @@
+
+# NOTE: The 'nn' and 'utils' modules imported below was created entirely by our team
+# It is NOT an external package made by someone else! The code can be found in the 'nn' and 'utils' folders within this directory
+
 from nn import MultilayerPerceptron
 from nn.optim import SGD, Adam
 from utils import parse_classification_data, data_split, plot_loss, plot_prediction, plot_data

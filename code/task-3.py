@@ -1,3 +1,8 @@
+
+# NOTE: The 'utils' module imported below was created entirely by our team
+# It is NOT an external package made by someone else! The code can be found in the 'utils' folder within this directory
+# The 'torch' and 'torchvision' modules were NOT created by our team -- they are PyTorch libraries
+
 import torch
 from torchvision import models, datasets, transforms
 from torch.utils.data import DataLoader, random_split

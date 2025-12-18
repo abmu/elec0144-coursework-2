@@ -1,3 +1,7 @@
+
+# NOTE: The 'q' and 'utils' modules imported below was created entirely by our team
+# It is NOT an external package made by someone else! The code can be found in the 'q' and 'utils' folders within this directory
+
 from q import Environment, QLearning
 from utils import parse_grid_data, plot_acc
 
