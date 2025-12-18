@@ -9,6 +9,8 @@ class Environment:
         'RIGHT': (0, 1)
     }
 
+    MOVE_PENALTY = -1.0
+
     # Grid definitions
     START = 'S'
     OBSTACLE = '#'
