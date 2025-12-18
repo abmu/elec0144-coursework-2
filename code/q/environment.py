@@ -25,6 +25,15 @@ class Environment:
         self.pos = self.start
 
 
+    def __str__(self) -> str:
+        output = ['===== GRID =====\n']
+        for row in self.grid:
+            for col in row:
+                output.append(f'{col:^6}')
+            output.append('\n')
+        return ''.join(output)
+    
+
     def _find_start(self) -> tuple[int]:
         """
         Finds the starting position in the grid

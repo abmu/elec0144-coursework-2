@@ -16,6 +16,18 @@ class QLearning:
         self.epsilon_min = 0.01
 
     
+    def __str__(self) -> str:
+        output = ['===== Q-TABLE =====', '\n']
+        actions = self.env.ACTIONS.keys()
+        row_format = '{:>8}' * (len(actions) + 1)
+        output.append(row_format.format('', *actions) + '\n')
+        for i in range(self.env.rows):
+            for j in range(self.env.cols):
+                state = (i, j)
+                output.append(row_format.format(str(state), *(f'{self.get_q(state, a):.3f}' for a in actions)) + '\n')
+        return ''.join(output)
+
+    
     def epsilon(self, episode: int) -> float:
         """
         Get the exponential decay epsilon value
@@ -122,7 +134,7 @@ class QLearning:
         self.q_table[(state, action)] = old_q + self.alpha * bellman_err
 
     
-    def run(self, episode: int = 0, train: bool = False) -> tuple[float, list[str]]:
+    def run(self, episode: int = 0, train: bool = False) -> tuple[float, str]:
         """
         Run a tabular Q-learning training episode -- or evaluate the best performance
 
@@ -131,14 +143,15 @@ class QLearning:
             train: Whether it is training mode or "try-hard" mode
 
         Returns:
-            A tuple containing the total reward for that episode and a list of the actions taken
+            A tuple containing the total reward for that episode and the actions taken
         """
         self.env.reset()
 
         total_reward = 0.0
         actions = []
 
-        next = self.env.get_pos()
+        start = self.env.get_pos()
+        next = start
         total_reward += self.env.cell_value(next)
         while not self.env.is_terminal(next):
             # Perform action
@@ -159,7 +172,9 @@ class QLearning:
             if train:
                 self.update_q(state, action, next, reward)
 
-        return total_reward, actions
+        end = next
+        actions_taken = f'START {start} -|   {" -> ".join(actions)}   |- TERMINAL {end}'
+        return total_reward, actions_taken
     
 
     def train(self, iterations: int, seed: int = 42) -> list[float]:

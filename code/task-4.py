@@ -16,5 +16,8 @@ q_learning = QLearning(
 rewards = q_learning.train(iterations=100)
 plot_acc(rewards)
 
-_, actions_taken = q_learning.run(train=False)
-print(actions_taken)
+print(environment)
+print(q_learning)
+
+best_reward, actions_taken = q_learning.run(train=False)
+print(f'===== BEST ACTIONS =====\n{actions_taken}\n(Reward: {best_reward})')
