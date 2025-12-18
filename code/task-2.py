@@ -8,6 +8,8 @@ from utils import parse_classification_data, data_split, plot_loss, plot_predict
 
 # TODO
 # Measure and display accuracy of neural network during training -- Numner of correct predictions / Total predictions
+# -> Add a 'classification' flag which you pass to the train function. If the flag is true, within the train function, calculate and return the accuracy
+# -> This is needed because accuracy measurements is only relevant for classification tasks, not regression 
 
 
 layers = [
