@@ -1,6 +1,6 @@
 import math
 import random
-from environment import Environment
+from .environment import Environment
 
 
 class QLearning:
@@ -77,7 +77,7 @@ class QLearning:
         if random.random() < self.epsilon(episode):
             # exploration - choose random action
             actions = self.env.ACTIONS.keys()
-            return random.choice(actions)
+            return random.choice(list(actions))
         else:
             # exploitation - choose action with highest Q-value
             return self.choose_best_action(state)
@@ -96,7 +96,7 @@ class QLearning:
         actions = self.env.ACTIONS.keys()
         qs = (self.get_q(state, a) for a in actions)
         max_idx, max_q = max(enumerate(qs), key=lambda x: x[1])
-        return actions[max_idx]
+        return list(actions)[max_idx]
     
     
     def update_q(self, state: tuple[int, int], action: str, next_state: tuple[int, int], reward: float) -> None:
@@ -122,7 +122,7 @@ class QLearning:
         self.q_table[(state, action)] = old_q + self.alpha * bellman_err
 
     
-    def run(self, episode: int = 0, train: bool = True) -> tuple[float, list[str]]:
+    def run(self, episode: int = 0, train: bool = False) -> tuple[float, list[str]]:
         """
         Run a tabular Q-learning training episode -- or evaluate the best performance
 
@@ -139,6 +139,7 @@ class QLearning:
         actions = []
 
         next = self.env.get_pos()
+        total_reward += self.env.cell_value(next)
         while not self.env.is_terminal(next):
             # Perform action
             state = next
@@ -159,3 +160,25 @@ class QLearning:
                 self.update_q(state, action, next, reward)
 
         return total_reward, actions
+    
+
+    def train(self, iterations: int, seed: int = 42) -> list[float]:
+        """
+        Train the Q-learning algorithm
+
+        Args:
+            iterations: Number of iterations
+
+        Returns:
+            List of episode rewards
+        """
+        random.seed(seed)
+        self.set_table(table={})
+
+        episode_rewards = []
+
+        for episode in range(iterations):
+            total_reward, _ = self.run(episode, train=True)
+            episode_rewards.append(total_reward)
+
+        return episode_rewards
