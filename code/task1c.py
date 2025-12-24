@@ -85,7 +85,7 @@ def plot_compare_lr(lr, mom_losses, mom_ok, adam_losses, adam_ok, out_path):
 
     plt.xlabel("Iteration")
     plt.ylabel("Loss")
-    plt.title(f"Loss comparison at lr={lr} (smoothed window={SMOOTH_WINDOW})")
+    plt.title(f"Loss comparison at lr={lr}")
     plt.legend()
     plt.tight_layout()
     plt.savefig(out_path, dpi=200)
@@ -102,7 +102,7 @@ def plot_all_lrs(losses_by_lr, ok_by_lr, title, out_path, use_log_y=True):
 
     plt.xlabel("Iteration")
     plt.ylabel("Loss")
-    plt.title(title + f" (smoothed window={SMOOTH_WINDOW})")
+    plt.title(title)
     if use_log_y:
         plt.yscale("log")
     plt.legend()
