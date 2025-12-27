@@ -26,7 +26,7 @@ LRS = [0.1, 0.01, 0.001, 0.0001]
 
 MOMENTUM = 0.9
 SEED = 42
-OUT_DIR = "task1c_plots"
+OUT_DIR = "task-1c-plots"
 
 # Smoothing window for nicer curves (set None to disable)
 SMOOTH_WINDOW = 50
