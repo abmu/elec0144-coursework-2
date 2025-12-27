@@ -12,7 +12,7 @@ def _end() -> None:
     if SAVE:
         fname = OUT_DIR + datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3] + '.png'
         print(f'Saving to "{fname}"...')
-        plt.savefig(fname)
+        plt.savefig(fname, dpi=256)
         plt.close()
     else:
         plt.show()
@@ -54,12 +54,13 @@ def plot_prediction(pred: tuple[np.ndarray, np.ndarray], actual: tuple[np.ndarra
     _end()
 
 
-def plot_losses(train_yss: list[tuple[str, np.ndarray]]) -> None:
+def plot_losses(train_yss: list[tuple[str, np.ndarray]], log: bool = False) -> None:
     plt.figure()
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
     for label, train_ys in train_yss:
         plt.plot(range(1, len(train_ys)+1), train_ys, label=label)  # start from 1
-    plt.yscale('log')
+    if log:
+        plt.yscale('log')
     plt.legend()
     _end()
