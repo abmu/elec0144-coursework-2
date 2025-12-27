@@ -1,2 +1,2 @@
 from .data import generate_polynomial_data, data_split, parse_classification_data, parse_grid_data
-from .plot import plot_data, plot_loss, plot_acc, plot_prediction
+from .plot import plot_data, plot_loss, plot_acc, plot_prediction, plot_losses

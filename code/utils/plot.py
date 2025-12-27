@@ -1,11 +1,27 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from datetime import datetime
+from pathlib import Path
+
+SAVE = True
+OUT_DIR = 'out/'
+Path(OUT_DIR).mkdir(exist_ok=True)
+
+
+def _end() -> None:
+    if SAVE:
+        fname = OUT_DIR + datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3] + '.png'
+        print(f'Saving to "{fname}"...')
+        plt.savefig(fname)
+        plt.close()
+    else:
+        plt.show()
 
 
 def plot_data(xs: np.ndarray, ys: np.ndarray) -> None:
     plt.figure()
     plt.plot(xs, ys, 'k+')
-    plt.show()
+    _end()
 
 
 def plot_loss(train_ys: np.ndarray, val_ys: np.ndarray = []) -> None:
@@ -16,7 +32,7 @@ def plot_loss(train_ys: np.ndarray, val_ys: np.ndarray = []) -> None:
     if len(val_ys):
         plt.plot(range(1, len(val_ys)+1), val_ys, label="Validation")
     plt.legend()
-    plt.show()
+    _end()
 
 
 def plot_acc(train_ys: np.ndarray, val_ys: np.ndarray = []) -> None:
@@ -27,7 +43,7 @@ def plot_acc(train_ys: np.ndarray, val_ys: np.ndarray = []) -> None:
     if len(val_ys):
         plt.plot(range(1, len(val_ys)+1), val_ys, label="Validation")
     plt.legend()
-    plt.show()
+    _end()
 
 
 def plot_prediction(pred: tuple[np.ndarray, np.ndarray], actual: tuple[np.ndarray, np.ndarray]) -> None:
@@ -35,4 +51,15 @@ def plot_prediction(pred: tuple[np.ndarray, np.ndarray], actual: tuple[np.ndarra
     plt.plot(*actual, 'k+', label="Actual")
     plt.plot(*pred, 'r-', label="Predicted")
     plt.legend()
-    plt.show()
+    _end()
+
+
+def plot_losses(train_yss: list[tuple[str, np.ndarray]]) -> None:
+    plt.figure()
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    for label, train_ys in train_yss:
+        plt.plot(range(1, len(train_ys)+1), train_ys, label=label)  # start from 1
+    plt.yscale('log')
+    plt.legend()
+    _end()

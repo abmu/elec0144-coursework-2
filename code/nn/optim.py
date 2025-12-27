@@ -55,8 +55,10 @@ class SGDMomentum(Optimiser):
         Initialise velocity terms
         """
         n = len(weights)
+
         self.v_w = [None] + [np.zeros_like(weights[i]) for i in range(1, n)]
         self.v_b = [None] + [np.zeros_like(biases[i]) for i in range(1, n)]
+
         self.initialised = True
 
 
@@ -64,9 +66,7 @@ class SGDMomentum(Optimiser):
         if not self.initialised:
             return
 
-        for i in range(1, len(self.v_w)):
-            self.v_w[i].fill(0)
-            self.v_b[i].fill(0)
+        self.initialised = False
 
 
     def update(
@@ -126,15 +126,9 @@ class Adam(Optimiser):
     def reset(self) -> None:
         if not self.initialised:
             return
-
-        n = len(self.m_w)
-        for i in range(1, n):
-            self.m_w[i].fill(0)
-            self.v_w[i].fill(0)
-            self.m_b[i].fill(0)
-            self.v_b[i].fill(0)
         
         self.t = 0
+        self.initialised = False        
 
 
     def update(self, weights: list[np.ndarray], biases: list[np.ndarray], grad_w: list[np.ndarray], grad_b: list[np.ndarray]) -> tuple[list[np.ndarray], list[np.ndarray]]:
