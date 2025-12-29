@@ -57,29 +57,29 @@ for i, lr in enumerate(LRS):
         layers=sgd_configs[i][0],
         optimiser=sgd_configs[i][1]
     )
-    sgd_train_losses, _ = sgd_mlp.train(iterations=iterations, train_data=(xs_train, ys_train))
+    sgd_res = sgd_mlp.train(iterations=iterations, train_data=(xs_train, ys_train))
 
     sgdm_mlp = MultilayerPerceptron(
         layers=sgdm_configs[i][0],
         optimiser=sgdm_configs[i][1]
     )
-    sgdm_train_losses, _ = sgdm_mlp.train(iterations=iterations, train_data=(xs_train, ys_train))
+    sgdm_res = sgdm_mlp.train(iterations=iterations, train_data=(xs_train, ys_train))
 
     adam_mlp = MultilayerPerceptron(
         layers=adam_configs[i][0],
         optimiser=adam_configs[i][1]
     )
-    adam_train_losses, _ = adam_mlp.train(iterations=iterations, train_data=(xs_train, ys_train))
+    adam_res = adam_mlp.train(iterations=iterations, train_data=(xs_train, ys_train))
 
     plot_losses([
-        (f'SGD', sgd_train_losses),
-        (f'SGDM', sgdm_train_losses),
-        (f'ADAM', adam_train_losses)
+        (f'SGD', sgd_res.train_losses),
+        (f'SGDM', sgdm_res.train_losses),
+        (f'ADAM', adam_res.train_losses)
     ], log=True)
 
-    sgd_losses.append((f'lr={lr}', sgd_train_losses))
-    sgdm_losses.append((f'lr={lr}', sgdm_train_losses))
-    adam_losses.append((f'lr={lr}', adam_train_losses))
+    sgd_losses.append((f'lr={lr}', sgd_res.train_losses))
+    sgdm_losses.append((f'lr={lr}', sgdm_res.train_losses))
+    adam_losses.append((f'lr={lr}', adam_res.train_losses))
 
 plot_losses(sgd_losses, log=True)
 plot_losses(sgdm_losses, log=True)

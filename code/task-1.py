@@ -28,8 +28,8 @@ mlp = MultilayerPerceptron(
 xs_train, ys_train = generate_polynomial_data(start=-1, stop=1, step=0.05)
 
 # Evaluate losses
-train_losses, _ = mlp.train(iterations=10000, train_data=(xs_train, ys_train))
-plot_loss(train_losses)
+res = mlp.train(iterations=10000, train_data=(xs_train, ys_train))
+plot_loss(res.train_losses)
 
 # Run on test data
 xs_test, _ = generate_polynomial_data(start=-0.97, stop=0.93, step=0.1)

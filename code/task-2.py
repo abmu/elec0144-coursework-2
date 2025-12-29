@@ -4,7 +4,7 @@
 
 from nn import MultilayerPerceptron
 from nn.optim import SGD, Adam
-from utils import parse_classification_data, data_split, plot_loss, plot_prediction, plot_data
+from utils import parse_classification_data, data_split, plot_loss, plot_acc, plot_prediction, plot_data
 
 
 layers = [
@@ -34,6 +34,7 @@ res = mlp.train(
     # val_patience=float('inf')  # max patience for testing purposes
 )
 plot_loss(res.train_losses, res.val_losses)
+plot_acc(res.train_accs, res.val_accs)
 
 xs_test, ys_test = xs_val, ys_val
 ys_pred = mlp.predict(xs_test)

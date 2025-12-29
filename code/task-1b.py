@@ -35,8 +35,8 @@ for lr, (layers, optimiser) in zip(LRS, configs):
         optimiser=optimiser
     )
 
-    train_losses, _ = mlp.train(iterations=iterations, train_data=(xs_train, ys_train))
-    losses.append((f'lr={lr}', train_losses))
+    res = mlp.train(iterations=iterations, train_data=(xs_train, ys_train))
+    losses.append((f'lr={lr}', res.train_losses))
 
     ys_pred = mlp.predict(xs_test)
     plot_prediction(pred=(xs_test, ys_pred), actual=(xs_train, ys_train))

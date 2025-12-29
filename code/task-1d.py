@@ -88,8 +88,8 @@ for label, layers, optimiser in configs:
         optimiser=optimiser
     )
 
-    train_losses, _ = mlp.train(iterations=iterations, train_data=(xs_train, ys_train))
-    losses.append((label, train_losses))
+    res = mlp.train(iterations=iterations, train_data=(xs_train, ys_train))
+    losses.append((label, res.train_losses))
 
     ys_pred = mlp.predict(xs_test)
     plot_prediction(pred=(xs_test, ys_pred), actual=(xs_train, ys_train))

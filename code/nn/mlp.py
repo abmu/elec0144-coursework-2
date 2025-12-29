@@ -24,6 +24,21 @@ class Task(Enum):
     REGRESSION = 'regression'
 
 
+def _to_task_enum(value: str | Task) -> Task:
+    """
+    Ensure the value is a valid Task enum
+
+    Args:
+        value: Input string or Task
+
+    Returns:
+        A Task enum
+    """
+    if isinstance(value, Task):
+        return value
+    return Task(value)
+
+
 @dataclass
 class TrainingResult:
     train_losses: list[np.float64]
@@ -33,10 +48,10 @@ class TrainingResult:
 
 
 class MultilayerPerceptron:
-    def __init__(self, layers: list[tuple[int, str]], optimiser: Optimiser, task: Task = Task.REGRESSION, l2_reg: float = 0.0, seed: int = 144) -> None:
+    def __init__(self, layers: list[tuple[int, str]], optimiser: Optimiser, task: str = Task.REGRESSION.value, l2_reg: float = 0.0, seed: int = 144) -> None:
         self.layers = layers.copy()  # [(layer size, activation function), ...]
         self.optimiser = optimiser
-        self.task = task
+        self.task = _to_task_enum(task)
         self.weights = [None] * len(layers)
         self.biases = [None] * len(layers)
         self.x_mean, self.x_std = None, None
