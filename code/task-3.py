@@ -16,18 +16,35 @@ from utils import plot_loss, plot_acc
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-def get_train_val_loaders(foldername: str, ratio: float, seed: int = 42) -> tuple[DataLoader, DataLoader, list[str]]:
+def _valid_ratio(ratio: tuple[float, ...]) -> bool:
     """
-    Get the training and validation data loaders for the fruits dataset
+    Check if the ratio in the tuple is valid
+
+    Args:
+        ratio: Ratio that should add to 1, with only non-negative values
+
+    Returns:
+        A True or False value depending on if the ratio is valid
+    """
+    return all(x >= 0 for x in ratio) and sum(ratio) == 1.0
+
+
+def get_train_val_test_loaders(foldername: str, ratio: tuple[float, float, float], batch_size: int = 4, seed: int = 42) -> tuple[DataLoader, DataLoader, DataLoader, list[str]]:
+    """
+    Get the training, validation, and test data loaders for the fruits dataset
 
     Args:
         seed: Random seed for reproducibility
         foldername: Name of the dataset folder 
-        ratio: Desired split -- e.g. 0.7 means a 70% / 30% split
+        ratio: Desired split -- e.g. (0.7, 0.3, 0.0) means a 70% train / 30% validation / 0% test split
+        batch_size: The batch size for the data loaders
 
     Returns:
-        A tuple containing the training and validation data loaders, as well as the class names
+        A tuple containing the training, validation, and test data loaders, as well as the class names
     """
+    if not _valid_ratio(ratio):
+        raise ValueError('Invalid ratio!')
+
     # Transform dataset to make compatible with the models
     transform = transforms.Compose([
         transforms.Resize(256),
@@ -43,17 +60,31 @@ def get_train_val_loaders(foldername: str, ratio: float, seed: int = 42) -> tupl
     dataset = datasets.ImageFolder(foldername, transform=transform)
 
     # Split dataset
-    train_size = int(ratio * len(dataset))
-    val_size = len(dataset) - train_size
+    test_size = int(ratio[2] * len(dataset))
+    val_size = int(ratio[1] * len(dataset))
+    train_size = len(dataset) - (val_size + test_size)
+    sizes = [train_size, val_size, test_size]
+    names = ['train', 'val', 'test']
+    
+    # Get non-zero sizes
+    non_zero_sizes = []
+    non_zero_names = []
+    for name, size in zip(names, sizes):
+        if size > 0:
+            non_zero_sizes.append(size)
+            non_zero_names.append(name)
 
-    train_dataset, val_dataset = random_split(dataset, [train_size, val_size], generator=torch.Generator().manual_seed(seed))
+    splits = random_split(dataset, non_zero_sizes, generator=torch.Generator().manual_seed(seed))
 
     # Create data loaders
-    train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=4, shuffle=True)
+    loaders = {}
+    for i, name in enumerate(non_zero_names):
+        shuffle = (name == 'train')  # only shuffle training set
+        loaders[name] = DataLoader(splits[i], batch_size=batch_size, shuffle=shuffle)
+
     class_names = dataset.classes
 
-    return train_loader, val_loader, class_names
+    return loaders.get('train'), loaders.get('val'), loaders.get('test'), class_names
 
 
 def get_alexnet(output_classes: int) -> models.AlexNet:
@@ -106,7 +137,49 @@ def get_googlenet(output_classes: int) -> models.GoogLeNet:
     return googlenet
 
 
-def train(model: torch.nn.Module, loader: DataLoader, criterion: torch.nn.Module, optimiser: torch.optim.Optimizer) -> tuple[float, float]:
+def get_optimiser(model: torch.nn.Module, name: str, **kwargs) -> torch.optim.Optimizer:
+    """
+    Get an optimiser for the model
+
+    Args:
+        model: The neural network model
+        name: Name of the optimisr
+        kwargs: Parameters of the optimiser
+
+    Returns:
+        A new optimiser
+    """
+    if name == 'SGD':
+        Optimiser = torch.optim.SGD
+    else:
+        return None
+    
+    return Optimiser(
+        filter(lambda p: p.requires_grad, model.parameters()),
+        **kwargs
+    )
+
+
+def get_criterion(name: str, **kwargs) -> torch.nn.Module:
+    """
+    Get a criterion / loss function
+
+    Args:
+        name: Name of the criterion
+        kwargs: Parameters of the criterion
+
+    Returns:
+        A new criterion
+    """
+    if name == 'CrossEntropyLoss':
+        Criterion = torch.nn.CrossEntropyLoss
+    else:
+        return None
+    
+    return Criterion(**kwargs)
+
+
+def _train(model: torch.nn.Module, loader: DataLoader, criterion: torch.nn.Module, optimiser: torch.optim.Optimizer) -> tuple[float, float]:
     """
     Train the model for a single epoch
 
@@ -142,7 +215,7 @@ def train(model: torch.nn.Module, loader: DataLoader, criterion: torch.nn.Module
 
 
 @torch.no_grad()
-def validate(model: torch.nn.Module, loader: DataLoader, criterion: torch.nn.Module) -> tuple[float, float]:
+def _validate(model: torch.nn.Module, loader: DataLoader, criterion: torch.nn.Module) -> tuple[float, float]:
     """
     Validate the model for a single epoch
 
@@ -173,7 +246,7 @@ def validate(model: torch.nn.Module, loader: DataLoader, criterion: torch.nn.Mod
     return running_loss / len(loader), correct / total
 
 
-def train_model(model: torch.nn.Module, train_loader: DataLoader, val_loader: DataLoader, epochs: int) -> tuple[list[float], list[float], list[float], list[float]]:
+def train_model(model: torch.nn.Module, train_loader: DataLoader, val_loader: DataLoader, criterion: torch.nn.Module, optimiser: torch.optim.Optimizer, epochs: int) -> dict[str, list[float]]:
     """
     Train the model on the training data and validate
 
@@ -181,6 +254,8 @@ def train_model(model: torch.nn.Module, train_loader: DataLoader, val_loader: Da
         model: The neural network model
         train_loader: The training data loader
         val_loader: The validation data loader
+        criterion: The loss function to be used
+        optimiser: The optimiser to be used
         epochs: The number of iterations to train for
 
     Returns:
@@ -188,19 +263,13 @@ def train_model(model: torch.nn.Module, train_loader: DataLoader, val_loader: Da
     """
     print(f'=== Training {type(model).__name__} ===')
 
-    criterion = torch.nn.CrossEntropyLoss()
-    optimiser = torch.optim.SGD(
-        filter(lambda p: p.requires_grad, model.parameters()),
-        lr=1e-3
-    )
-
     train_losses = []
     train_accs = []
     val_losses = []
     val_accs = []
     for epoch in range(1, epochs+1):
-        train_loss, train_acc = train(model, train_loader, criterion, optimiser)
-        val_loss, val_acc = validate(model, val_loader, criterion)
+        train_loss, train_acc = _train(model, train_loader, criterion, optimiser)
+        val_loss, val_acc = _validate(model, val_loader, criterion)
 
         train_losses.append(train_loss)
         train_accs.append(train_acc)
@@ -215,27 +284,106 @@ def train_model(model: torch.nn.Module, train_loader: DataLoader, val_loader: Da
     
     print()
 
-    return train_losses, train_accs, val_losses, val_accs
+    return {
+        'train_losses': train_losses,
+        'train_accs': train_accs,
+        'val_losses': val_losses,
+        'val_accs': val_accs
+    }
+
+
+@torch.no_grad()
+def evaluate_model(model: torch.nn.Module, test_loader: DataLoader, criterion: torch.nn.Module) -> dict[str, float | list[float]]:
+    """
+    Evaluate the model on the test data
+
+    Args:
+        model: The neural nework model
+        test_loader: The test data loader
+        criterion: The loss function to be used
+
+    Returns:
+        The test loss and accuracy, and all of the predictions and actual labels
+    """
+    print(f'=== Evaluating {type(model).__name__} ===')
+
+    model.eval()
+    running_loss = 0.0
+    correct = 0
+    total = 0
+
+    all_preds = []
+    all_labels = []
+
+    for images, labels in test_loader:
+        images, labels = images.to(DEVICE), labels.to(DEVICE)
+
+        outputs = model(images)
+        loss = criterion(outputs, labels)
+
+        running_loss += loss.item()
+        _, preds = torch.max(outputs, dim=1)
+
+        all_preds += preds.tolist()
+        all_labels += labels.tolist()
+
+        correct += (preds == labels).sum().item()
+        total += labels.size(0)
+
+    test_loss, test_acc = running_loss / len(test_loader), correct / total
+    print(f'Test Loss: {test_loss:.4f}, Test Acc: {test_acc:.4f}\n')
+
+    return {
+        'test_loss': test_loss,
+        'test_acc': test_acc,
+        'all_preds': all_preds,
+        'all_labels': all_labels
+    }
 
 
 if __name__ == "__main__":
     # Train AlexNet and GoogleLeNet on the fruits dataset
     foldername = 'task-3-fruits'
-    split = 0.7
-    train_loader, val_loader, classes = get_train_val_loaders(foldername, ratio=split)
+    split = (0.7, 0.3, 0)  # (train, validation, test)
+    train_loader, val_loader, test_loader, classes = get_train_val_test_loaders(foldername, ratio=split)
     num_classes = len(classes)
 
     print(f'Dataset: "{foldername}" | Classes: {classes}\n')
 
     iterations = 30
 
+    criterion = {
+       'name': 'CrossEntropyLoss'
+    }
+    optimiser = {
+        'name': 'SGD',
+        'lr': 1e-3,
+    }
+
     alexnet = get_alexnet(output_classes=num_classes)
-    a_train_losses, a_train_accs, a_val_losses, a_val_accs = train_model(alexnet, train_loader, val_loader, epochs=iterations)
+    alexnet_res = train_model(
+        model=alexnet,
+        train_loader=train_loader,
+        val_loader=val_loader,
+        criterion=get_criterion(**criterion),
+        optimiser=get_optimiser(alexnet, **optimiser),
+        epochs=iterations
+    )
+
+    plot_loss(alexnet_res['train_losses'], alexnet_res['val_losses'])
+    plot_acc(alexnet_res['train_accs'], alexnet_res['val_accs'])
 
     googlenet = get_googlenet(output_classes=num_classes)
-    g_train_losses, g_train_accs, g_val_losses, g_val_accs = train_model(googlenet, train_loader, val_loader, epochs=iterations)
+    googlenet_res = train_model(
+        model=googlenet,
+        train_loader=train_loader,
+        val_loader=val_loader,
+        criterion=get_criterion(**criterion),
+        optimiser=get_optimiser(googlenet, **optimiser),
+        epochs=iterations
+    )
     
-    plot_loss(a_train_losses, a_val_losses)
-    plot_loss(g_train_losses, g_val_losses)
-    plot_acc(a_train_accs, a_val_accs)
-    plot_acc(g_train_accs, g_val_accs)
+    plot_loss(googlenet_res['train_losses'], googlenet_res['val_losses'])
+    plot_acc(googlenet_res['train_accs'], googlenet_res['val_accs'])
+
+    evaluate_model(alexnet, val_loader, get_criterion(**criterion))
