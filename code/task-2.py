@@ -6,11 +6,6 @@ from nn import MultilayerPerceptron
 from nn.optim import SGD, Adam
 from utils import parse_classification_data, data_split, plot_loss, plot_prediction, plot_data
 
-# TODO
-# Measure and display accuracy of neural network during training -- Numner of correct predictions / Total predictions
-# -> Add a 'classification' flag which you pass to the train function. If the flag is true, within the train function, calculate and return the accuracy
-# -> This is needed because accuracy measurements is only relevant for classification tasks, not regression 
-
 
 layers = [
     (4, None),
@@ -23,7 +18,8 @@ optimiser = Adam(lr=0.001)
 
 mlp = MultilayerPerceptron(
     layers=layers,
-    optimiser=optimiser
+    optimiser=optimiser,
+    task='classification'
 )
 
 filename = 'task-2-iris.txt'
@@ -31,23 +27,23 @@ xs, ys, idx_to_label = parse_classification_data(filename)
 
 xs_train, ys_train, xs_val, ys_val = data_split(xs, ys, ratio=0.7)
 
-train_losses, val_losses = mlp.train(
+res = mlp.train(
     iterations=10000,
     train_data=(xs_train, ys_train),
     val_data=(xs_val, ys_val),
     # val_patience=float('inf')  # max patience for testing purposes
 )
-plot_loss(train_losses, val_losses)
+plot_loss(res.train_losses, res.val_losses)
 
 xs_test, ys_test = xs_val, ys_val
 ys_pred = mlp.predict(xs_test)
 
 # Convert from 3 outputs to 1 maximum value output -- predicted class
-ys_test = ys_test.argmax(axis=1)
-ys_pred = ys_pred.argmax(axis=1)
+ys_test_cls = mlp.to_classification(ys_test)
+ys_pred_cls = mlp.to_classification(ys_pred)
 
 xaxis = range(1, len(xs_test)+1)
-plot_prediction(pred=(xaxis, ys_pred), actual=(xaxis, ys_test))
+plot_prediction(pred=(xaxis, ys_pred_cls), actual=(xaxis, ys_test_cls))
 
-difference = ((ys_pred - ys_test) != 0).astype(int)
+difference = ((ys_pred_cls - ys_test_cls) != 0).astype(int)
 plot_data(xaxis, difference)

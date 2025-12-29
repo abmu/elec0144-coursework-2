@@ -1,5 +1,7 @@
 import numpy as np
 from .optim import Optimiser
+from enum import Enum
+from dataclasses import dataclass
 
 
 ACTIVATION = {
@@ -17,10 +19,24 @@ DERIVATIVE = {
 }
 
 
+class Task(Enum):
+    CLASSIFICATION = 'classification'
+    REGRESSION = 'regression'
+
+
+@dataclass
+class TrainingResult:
+    train_losses: list[np.float64]
+    val_losses: list[np.float64]
+    train_accs: list[np.float64]
+    val_accs: list[np.float64]
+
+
 class MultilayerPerceptron:
-    def __init__(self, layers: list[tuple[int, str]], optimiser: Optimiser, l2_reg: float = 0.0, seed: int = 144) -> None:
+    def __init__(self, layers: list[tuple[int, str]], optimiser: Optimiser, task: Task = Task.REGRESSION, l2_reg: float = 0.0, seed: int = 144) -> None:
         self.layers = layers.copy()  # [(layer size, activation function), ...]
         self.optimiser = optimiser
+        self.task = task
         self.weights = [None] * len(layers)
         self.biases = [None] * len(layers)
         self.x_mean, self.x_std = None, None
@@ -203,7 +219,42 @@ class MultilayerPerceptron:
         return (xs - self.x_mean) / (self.x_std + 1e-8)
     
 
-    def train(self, iterations: int, train_data: tuple[np.ndarray, np.ndarray], val_data: tuple[np.ndarray, np.ndarray] = None, train_loss_goal: float = 1e-4, val_patience: int = 10) -> tuple[list[np.float64], list[np.float64]]:
+    def _accuracy(self, xs: np.ndarray, ys: np.ndarray) -> float:
+        """
+        Compute the classifcation accuracy
+
+        Args:
+            xs: Input values
+            ys: Truth output values
+
+        Return:
+            Accuracy measured in range [0, 1]
+        """
+        ys_pred = self.predict(xs)
+
+        # Convert from 3 outputs to 1 maximum value output -- predicted class
+        ys_true_cls = self.to_classification(ys)
+        ys_pred_cls = self.to_classification(ys_pred)
+
+        return np.mean(ys_pred_cls == ys_true_cls)
+    
+
+    @staticmethod
+    def to_classification(ys: np.ndarray) -> np.ndarray:
+        """
+        Convert from n outputs to 1 maximum value output -- predicted class
+
+        Args:
+            ys: Output values
+
+        Returns:
+            The classifications
+        """
+        ys_cls = ys.argmax(axis=1)
+        return ys_cls
+    
+
+    def train(self, iterations: int, train_data: tuple[np.ndarray, np.ndarray], val_data: tuple[np.ndarray, np.ndarray] = None, train_loss_goal: float = 1e-4, val_patience: int = 10) -> TrainingResult:
         """
         Train the neural netwrok on a given data set
 
@@ -215,7 +266,7 @@ class MultilayerPerceptron:
             val_patience: How long to allow no improvement on validation loss
 
         Returns:
-            The average train losses per iteration and average validation losses
+            The average train losses per iteration, average validation losses, training accuracy, and validation accuracy
         """
         # Normalise input based on training data only
         xs_train, ys_train = train_data
@@ -236,6 +287,8 @@ class MultilayerPerceptron:
         self.optimiser.reset()
         train_losses = []
         val_losses = []
+        train_accs = []
+        val_accs = []
 
         for epoch in range(1, iterations+1):
 
@@ -280,17 +333,34 @@ class MultilayerPerceptron:
                     print(f'[STOPPING!] Epoch: {epoch}, Best Validation Loss = {best_val_loss:.6f} at epoch {best_val_epoch}')
                     break
 
+            if self.task == Task.CLASSIFICATION:
+                # Training accuracy
+                train_acc = self._accuracy(xs_train, ys_train)
+                train_accs.append(train_acc)
+
+                # Validation accuracy
+                if val_data:
+                    val_acc = self._accuracy(xs_val, ys_val)
+                    val_accs.append(val_acc)
+
             if not val_data and mean_train_loss < train_loss_goal:
                 # Stop training early -- if there is no validation set and training loss goal reached
-                print(f'[STOPPING!] Epoch: {epoch}, Train Loss = {mean_train_loss} < Train Goal = {train_loss_goal}')
+                print(f'[STOPPING!] Epoch: {epoch} | Train Loss = {mean_train_loss} < Train Goal = {train_loss_goal}')
                 break
-            
+
             # Progress output
             if epoch % 1000 == 0:
-                val_loss_msg = f', Validation Loss = {mean_val_loss:.6f}' if val_data else ''
-                print(f'Epoch: {epoch}, Train Loss = {mean_train_loss:.6f}{val_loss_msg}')
-        
-        return train_losses, val_losses
+                val_loss_msg = f' | Validation Loss = {mean_val_loss:.6f}' if val_data else ''
+                train_acc_msg = f', Train Acc = {train_acc:.6f}' if self.task == Task.CLASSIFICATION else ''
+                val_acc_msg = f', Validation Acc = {val_acc:.6f}' if self.task == Task.CLASSIFICATION and val_data else ''
+                print(f'Epoch: {epoch} | Train Loss = {mean_train_loss:.6f}{train_acc_msg}{val_loss_msg}{val_acc_msg}')
+
+        return TrainingResult(
+            train_losses=train_losses,
+            val_losses=val_losses,
+            train_accs=train_accs,
+            val_accs=val_accs
+        )
     
 
     def predict(self, xs: np.ndarray) -> np.ndarray:
