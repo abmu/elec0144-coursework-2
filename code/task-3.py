@@ -151,13 +151,13 @@ def get_optimiser(model: torch.nn.Module, name: str, **kwargs) -> torch.optim.Op
     """
     if name == 'SGD':
         Optimiser = torch.optim.SGD
+    elif name == 'Adam':
+        Optimiser = torch.optim.Adam
     else:
-        return None
+        raise ValueError(f'Unknown optimiser: {name}')
     
-    return Optimiser(
-        filter(lambda p: p.requires_grad, model.parameters()),
-        **kwargs
-    )
+    params = filter(lambda p: p.requires_grad, model.parameters())
+    return Optimiser(params, **kwargs)
 
 
 def get_criterion(name: str, **kwargs) -> torch.nn.Module:
@@ -173,8 +173,10 @@ def get_criterion(name: str, **kwargs) -> torch.nn.Module:
     """
     if name == 'CrossEntropyLoss':
         Criterion = torch.nn.CrossEntropyLoss
+    elif name == 'MSELoss':
+        Criterion = torch.nn.MSELoss
     else:
-        return None
+        raise ValueError(f'Unknown criterion: {name}')
     
     return Criterion(**kwargs)
 
