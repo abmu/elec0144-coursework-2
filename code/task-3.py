@@ -346,7 +346,7 @@ if __name__ == "__main__":
     # Train AlexNet and GoogleLeNet on the fruits dataset
     foldername = 'task-3-fruits'
     split = (0.7, 0.3, 0)  # (train, validation, test)
-    train_loader, val_loader, test_loader, classes = get_train_val_test_loaders(foldername, ratio=split)
+    train_loader, val_loader, _, classes = get_train_val_test_loaders(foldername, ratio=split)
     num_classes = len(classes)
 
     print(f'Dataset: "{foldername}" | Classes: {classes}\n')

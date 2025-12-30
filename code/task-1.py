@@ -4,7 +4,7 @@
 
 from nn import MultilayerPerceptron
 from nn.optim import SGD, SGDMomentum, Adam
-from utils import generate_polynomial_data, plot_loss, plot_prediction
+from utils import generate_polynomial_data, plot_loss, plot_prediction, plot_data
 
 
 # Define network layers and optimiser
@@ -26,6 +26,7 @@ mlp = MultilayerPerceptron(
 
 # Get training data
 xs_train, ys_train = generate_polynomial_data(start=-1, stop=1, step=0.05)
+plot_data(xs_train, ys_train)
 
 # Evaluate losses
 res = mlp.train(iterations=10000, train_data=(xs_train, ys_train))

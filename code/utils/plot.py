@@ -66,6 +66,18 @@ def plot_losses(train_yss: list[tuple[str, np.ndarray]], log: bool = False) -> N
     _end()
 
 
+def plot_accuracies(train_yss: list[tuple[str, np.ndarray]], log: bool = False) -> None:
+    plt.figure()
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+    for label, train_ys in train_yss:
+        plt.plot(range(1, len(train_ys)+1), train_ys, label=label)  # start from 1
+    if log:
+        plt.yscale('log')
+    plt.legend()
+    _end()
+
+
 def plot_confusion_matrix(cm: np.ndarray, class_names: list[str]) -> None:
     num_classes = len(class_names)
 
