@@ -9,8 +9,8 @@ This repository contains the code and resources for Assignment 2 of the ELEC0144
     *   `q/`: Q-Learning implementation.
     *   `utils/`: Utility functions for data loading and plotting.
     *   `task-3-fruits/`: Dataset for the transfer learning task.
-    *   `task-1*.py`: Regression tasks (1a, 1b, 1c, 1d).
-    *   `task-2*.py`: Classification tasks (2b, 2c).
+    *   `task-1*.py`: Regression tasks.
+    *   `task-2*.py`: Classification tasks.
     *   `task-3.py`: Transfer Learning task.
     *   `task-4.py`: Q-Learning task.
 *   `SPECIFICATION/`: Assignment guidelines and data.
@@ -25,13 +25,6 @@ Install the required Python packages using pip:
 
 ```bash
 pip install numpy matplotlib torch torchvision
-```
-
-**Critical Note for Task 3:**
-The dataset for Task 3 contains images in the **AVIF** format. To correctly process these images, you must have a modern version of the Pillow library installed (version 12.0.0 or later).
-
-```bash
-pip install --upgrade Pillow
 ```
 
 ## Running the Code
@@ -100,6 +93,4 @@ To explore different hyperparameters (as required by the assignment):
 ## Outputs
 
 *   **Console:** Displays training progress, loss values, and accuracy metrics.
-*   **Plots:** 
-    *   Most scripts save plots to the `out/` directory (inside `code/`) with timestamped filenames.
-    *   `task2c.py` saves specific comparison plots to the `task2c_plots/` directory (inside `code/`).
+*   **Plots:** Most scripts save plots to the `out/` directory (inside `code/`) with timestamped filenames.

@@ -6,7 +6,7 @@
 import torch
 from torchvision import models, datasets, transforms
 from torch.utils.data import DataLoader, random_split
-from utils import confusion_matrix, plot_loss, plot_acc, plot_confusion_matrix, plot_lr_val_accuracies, plot_lr_val_losses
+from utils import confusion_matrix, plot_loss, plot_acc, plot_losses, plot_accuracies, plot_confusion_matrix
 
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -340,7 +340,7 @@ def evaluate_model(model: torch.nn.Module, test_loader: DataLoader, criterion: t
 
 
 if __name__ == "__main__":
-    # Train AlexNet and GoogleLeNet on the fruits dataset
+    # Train AlexNet and GoogLeNet on the fruits dataset
     foldername = 'task-3-fruits'
     split = (0.7, 0.3, 0)  # (train, validation, test)
     train_loader, val_loader, _, classes = get_train_val_test_loaders(foldername, ratio=split)
@@ -348,8 +348,8 @@ if __name__ == "__main__":
 
     print(f'Dataset: "{foldername}" | Classes: {classes}\n')
 
+    # Training setup
     iterations = 30
-
     criterion = {
        'name': 'CrossEntropyLoss'
     }
@@ -358,6 +358,7 @@ if __name__ == "__main__":
         'lr': 1e-3,
     }
 
+    # Train and evaluate AlexNet
     alexnet = get_alexnet(output_classes=num_classes)
     alexnet_res = train_model(
         model=alexnet,
@@ -369,10 +370,12 @@ if __name__ == "__main__":
     )
     alexnet_eval = evaluate_model(alexnet, val_loader, get_criterion(**criterion))
 
+    # Plot AlexNet data
     plot_loss(alexnet_res['train_losses'], alexnet_res['val_losses'])
     plot_acc(alexnet_res['train_accs'], alexnet_res['val_accs'])
     plot_confusion_matrix(confusion_matrix(alexnet_eval['all_labels'], alexnet_eval['all_preds'], num_classes), classes)
 
+    # Train and evaluate GoogLeNet
     googlenet = get_googlenet(output_classes=num_classes)
     googlenet_res = train_model(
         model=googlenet,
@@ -384,35 +387,38 @@ if __name__ == "__main__":
     )
     googlenet_eval = evaluate_model(googlenet, val_loader, get_criterion(**criterion))
     
+    # Plot GoogLeNet data
     plot_loss(googlenet_res['train_losses'], googlenet_res['val_losses'])
     plot_acc(googlenet_res['train_accs'], googlenet_res['val_accs'])
     plot_confusion_matrix(confusion_matrix(googlenet_eval['all_labels'], googlenet_eval['all_preds'], num_classes), classes)
    
-    # Learning rate comparison (AlexNet + GoogLeNet)
+    # Learning rate parameter comparison (AlexNet + GoogLeNet)
     
-    learning_rates = [0.1, 0.01, 0.001, 0.0001]
+    LRS = [0.1, 0.01, 0.001, 0.0001]
 
-    alexnet_hist = {}
-    for lr in learning_rates:
-        print(f'========== AlexNet | Learning rate: {lr} ==========\n')
-        model_lr = get_alexnet(output_classes=num_classes)
+    alexnet_losses = []
+    alexnet_accs = []
+    googlenet_losses = []
+    googlenet_accs = []
+    for lr in LRS:
+        criterion = {
+        'name': 'CrossEntropyLoss'
+        }
+        optimiser = {
+            'name': 'SGD',
+            'lr': lr,
+        }
 
-        res = train_model(
-            model=model_lr,
+        alexnet = get_alexnet(output_classes=num_classes)
+        alexnet_res = train_model(
+            model=alexnet,
             train_loader=train_loader,
             val_loader=val_loader,
             criterion=get_criterion(**criterion),
-            optimiser=get_optimiser(model_lr, name=optimiser['name'], lr=lr),
+            optimiser=get_optimiser(alexnet, **optimiser),
             epochs=iterations
         )
-        alexnet_hist[lr] = res
 
-    plot_lr_val_losses(alexnet_hist, title="AlexNet: Validation Loss vs Epoch")
-    plot_lr_val_accuracies(alexnet_hist, title="AlexNet: Validation Accuracy vs Epoch")
-
-    googlenet_hist = {}
-    for lr in learning_rates:
-        print(f'========== GoogLeNet | Learning rate: {lr} ==========\n')
         model_lr = get_googlenet(output_classes=num_classes)
 
         res = train_model(
@@ -426,5 +432,4 @@ if __name__ == "__main__":
         googlenet_hist[lr] = res
 
     plot_lr_val_losses(googlenet_hist, title="GoogLeNet: Validation Loss vs Epoch")
-    plot_lr_val_accuracies(googlenet_hist, title="GoogLeNet: Validation Accuracy vs Epoch")
-      
+    plot_lr_val_accuracies(googlenet_hist, title="GoogLeNet: Validation Accuracy vs Epoch")      

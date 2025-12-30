@@ -9,7 +9,7 @@ from utils import generate_polynomial_data, plot_losses, plot_prediction
 
 configs = []
 
-LRS = [1, 0.1, 0.01, 0.001, 0.0001, 0.00001]
+LRS = [0.1, 0.01, 0.001, 0.0001]
 
 for lr in LRS:
     configs.append(
