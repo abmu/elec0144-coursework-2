@@ -20,7 +20,7 @@ q_learning = QLearning(
 )
 
 # Train the q-learning algorithm
-rewards = q_learning.train(episodes=100, verbose=True)
+rewards = q_learning.train(episodes=200, verbose=True)
 
 # Display results
 plot_rewards(rewards)

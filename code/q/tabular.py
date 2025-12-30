@@ -154,7 +154,7 @@ class QLearning:
         next = start
         total_reward += self.env.cell_value(next)
         if verbose:
-            print(f'Iteration: {self.t - t_start} | Pos: {next} | Epsilon: {self.epsilon:.3f}\n{self}')
+            print(f'Iterations: {self.t - t_start} | Pos: {next} | Epsilon: {self.epsilon:.3f}\n{self}')
         while not self.env.is_terminal(next):
             # Perform action
             state = next
@@ -179,7 +179,7 @@ class QLearning:
             self.t += 1
             if verbose:
                 act_str = '*BEST*' if is_best else '*RANDOM*'
-                print(f'Iteration: {self.t - t_start} | Pos: {next} | Epsilon: {self.epsilon:.3f} | Prev. Action: {action} {act_str}\n{self}')
+                print(f'Iterations: {self.t - t_start} | Pos: {next} | Epsilon: {self.epsilon:.3f} | Prev. Action: {action} {act_str}\n{self}')
 
         end = next
         actions_taken = f'START {start} -|   {" -> ".join(actions)}   |- TERMINAL {end}'
