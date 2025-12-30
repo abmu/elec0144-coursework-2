@@ -37,7 +37,7 @@ configs = [
         SGD(lr=0.01)
     ),
     (
-        'ReLu-wide-deep',
+        'ReLU-wide-deep',
         [
             (1, None),
             (9, 'relu'),
@@ -47,7 +47,7 @@ configs = [
         SGD(lr=0.01)
     ),
     (
-        'ReLu-Tanh-wide-deep',
+        'ReLU-Tanh-wide-deep',
         [
             (1, None),
             (9, 'relu'),
@@ -57,7 +57,7 @@ configs = [
         SGD(lr=0.01)
     ),
     (
-        'ReLu-output',
+        'ReLU-output',
         [
             (1, None),
             (3, 'tanh'),
