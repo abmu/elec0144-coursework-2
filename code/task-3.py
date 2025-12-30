@@ -314,8 +314,8 @@ def evaluate_model(model: torch.nn.Module, test_loader: DataLoader, criterion: t
     correct = 0
     total = 0
 
-    all_preds = []
     all_labels = []
+    all_preds = []
 
     for images, labels in test_loader:
         images, labels = images.to(DEVICE), labels.to(DEVICE)
@@ -326,8 +326,8 @@ def evaluate_model(model: torch.nn.Module, test_loader: DataLoader, criterion: t
         running_loss += loss.item()
         _, preds = torch.max(outputs, dim=1)
 
-        all_preds += preds.tolist()
         all_labels += labels.tolist()
+        all_preds += preds.tolist()
 
         correct += (preds == labels).sum().item()
         total += labels.size(0)
@@ -338,8 +338,8 @@ def evaluate_model(model: torch.nn.Module, test_loader: DataLoader, criterion: t
     return {
         'test_loss': test_loss,
         'test_acc': test_acc,
-        'all_preds': all_preds,
-        'all_labels': all_labels
+        'all_labels': all_labels,
+        'all_preds': all_preds
     }
 
 

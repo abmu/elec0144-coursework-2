@@ -1,3 +1,19 @@
+
+
+# TODO
+# CHANGE THIS CODE!
+
+# MAKE IT SIMILAR TO 'task-1c.py'
+
+
+
+
+
+
+
+
+
+
 # NOTE: The 'nn' and 'utils' modules imported below was created entirely by our team
 # It is NOT an external package made by someone else! The code can be found in the 'nn' and 'utils' folders within this directory
 
