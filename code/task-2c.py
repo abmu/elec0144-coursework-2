@@ -49,7 +49,7 @@ for lr in LRS:
     )
 
 iterations = 3000
-val_patience = 50
+val_patience = float('inf')
 
 filename = 'task-2-iris.txt'
 xs, ys, idx_to_label = parse_classification_data(filename)
