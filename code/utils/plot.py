@@ -10,7 +10,7 @@ Path(OUT_DIR).mkdir(exist_ok=True)
 
 def _end() -> None:
     if SAVE:
-        fname = OUT_DIR + datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3] + '.png'
+        fname = OUT_DIR + datetime.now().strftime("%Y-%m-%d %H-%M-%S.%f")[:-3] + '.png'
         print(f'Saving to "{fname}"...')
         plt.savefig(fname, dpi=256)
         plt.close()
