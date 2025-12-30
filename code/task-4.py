@@ -3,7 +3,7 @@
 # It is NOT an external package made by someone else! The code can be found in the 'q' and 'utils' folders within this directory
 
 from q import Environment, QLearning
-from utils import parse_grid_data, plot_acc
+from utils import parse_grid_data, plot_rewards
 
 
 # Create environment from grid file
@@ -23,8 +23,9 @@ q_learning = QLearning(
 rewards = q_learning.train(iterations=100)
 
 # Display results
-plot_acc(rewards)
+plot_rewards(rewards)
 
+print('POS (Y, X) -- ORIGIN TOP-LEFT CORNER\n')
 print(environment)
 print(q_learning)
 

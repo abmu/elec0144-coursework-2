@@ -109,3 +109,12 @@ def plot_confusion_matrix(cm: np.ndarray, class_names: list[str]) -> None:
             ax.text(j, i, str(cm[i, j]), color=txt_colour, ha='center', va='center')
 
     _end()
+
+
+def plot_rewards(rewards: np.ndarray) -> None:
+    plt.figure()
+    plt.xlabel("Epoch")
+    plt.ylabel("Reward")
+    plt.plot(range(1, len(rewards)+1), rewards)  # start from 1
+    plt.legend()
+    _end()
