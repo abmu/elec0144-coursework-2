@@ -176,7 +176,8 @@ class QLearning:
                 self.update_q(state, action, next, reward)
 
             # Update internal time step
-            self.t += 1
+            if train:
+                self.t += 1
             if verbose:
                 act_str = '*BEST*' if is_best else '*RANDOM*'
                 print(f'Iterations: {self.t - t_start} | Pos: {next} | Epsilon: {self.epsilon:.3f} | Prev. Action: {action} {act_str}\n{self}')
