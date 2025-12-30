@@ -4,7 +4,7 @@ from .environment import Environment
 
 
 class QLearning:
-    def __init__(self, env: Environment, alpha: float = 0.1, gamma: float = 0.9, epsilon_decay: float = 0.01) -> None:
+    def __init__(self, env: Environment, alpha: float = 0.1, gamma: float = 0.9, epsilon_decay: float = 0.003) -> None:
         self.q_table = {}  # { (state, action): q-value }
         self.env = env
         self.t = 0
@@ -154,7 +154,7 @@ class QLearning:
         next = start
         total_reward += self.env.cell_value(next)
         if verbose:
-            print(f'Iteration: {self.t - t_start} | Pos: {next} | Epsilon: {self.epsilon}\n{self}')
+            print(f'Iteration: {self.t - t_start} | Pos: {next} | Epsilon: {self.epsilon:.3f}\n{self}')
         while not self.env.is_terminal(next):
             # Perform action
             state = next
@@ -179,7 +179,7 @@ class QLearning:
             self.t += 1
             if verbose:
                 act_str = '*BEST*' if is_best else '*RANDOM*'
-                print(f'Iteration: {self.t - t_start} | Pos: {next} | Epsilon: {self.epsilon} | Prev. Action: {action} {act_str}\n{self}')
+                print(f'Iteration: {self.t - t_start} | Pos: {next} | Epsilon: {self.epsilon:.3f} | Prev. Action: {action} {act_str}\n{self}')
 
         end = next
         actions_taken = f'START {start} -|   {" -> ".join(actions)}   |- TERMINAL {end}'
@@ -207,7 +207,7 @@ class QLearning:
         for episode in range(episodes):
             if verbose:
                 print(f'Episode: {episode+1}/{episodes}')
-            total_reward, _ = self.run(episode, train=True, verbose=verbose)
+            total_reward, _ = self.run(train=True, verbose=verbose)
             episode_rewards.append(total_reward)
 
         return episode_rewards
