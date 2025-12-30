@@ -9,6 +9,7 @@ Path(OUT_DIR).mkdir(exist_ok=True)
 
 
 def _end() -> None:
+    plt.tight_layout()
     if SAVE:
         fname = OUT_DIR + datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3] + '.png'
         print(f'Saving to "{fname}"...')
@@ -106,7 +107,5 @@ def plot_confusion_matrix(cm: np.ndarray, class_names: list[str]) -> None:
         for j in range(num_classes):
             txt_colour = 'white' if cm[i, j] > thresh else 'black'
             ax.text(j, i, str(cm[i, j]), color=txt_colour, ha='center', va='center')
-
-    fig.tight_layout()
 
     _end()
