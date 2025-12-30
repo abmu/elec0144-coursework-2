@@ -109,3 +109,36 @@ def plot_confusion_matrix(cm: np.ndarray, class_names: list[str]) -> None:
             ax.text(j, i, str(cm[i, j]), color=txt_colour, ha='center', va='center')
 
     _end()
+
+def plot_lr_val_losses(hist: dict[float, dict[str, list[float]]], title: str = "Validation Loss vs Epoch") -> None:
+
+    # Plot validation loss curves for multiple learning rates.
+    
+    plt.figure()
+    plt.xlabel("Epoch")
+    plt.ylabel("Validation Loss")
+    plt.title(title)
+
+    for lr in sorted(hist.keys(),reverse= True):
+        val_losses = hist[lr]['val_losses']
+        plt.plot(range(1, len(val_losses) + 1), val_losses, label=f"lr={lr}")
+
+    plt.legend()
+    _end()
+
+
+def plot_lr_val_accuracies(hist: dict[float, dict[str, list[float]]], title: str = "Validation Accuracy vs Epoch") -> None:
+
+    # Plot validation accuracy curves for multiple learning rates.
+   
+    plt.figure()
+    plt.xlabel("Epoch")
+    plt.ylabel("Validation Accuracy")
+    plt.title(title)
+
+    for lr in sorted(hist.keys(),reverse= True):
+        val_accs = hist[lr]['val_accs']
+        plt.plot(range(1, len(val_accs) + 1), val_accs, label=f"lr={lr}")
+
+    plt.legend()
+    _end()
