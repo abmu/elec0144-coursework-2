@@ -4,9 +4,10 @@ from .environment import Environment
 
 
 class QLearning:
-    def __init__(self, env: Environment, alpha: float = 0.1, gamma: float = 0.9, epsilon_decay: float = 0.995) -> None:
+    def __init__(self, env: Environment, alpha: float = 0.1, gamma: float = 0.9, epsilon_decay: float = 0.01) -> None:
         self.q_table = {}  # { (state, action): q-value }
         self.env = env
+        self.t = 0
 
         # hyperparameters
         self.alpha = alpha
@@ -24,22 +25,20 @@ class QLearning:
         for i in range(self.env.rows):
             for j in range(self.env.cols):
                 state = (i, j)
-                best = max((self.get_q(state, a), a) for a in actions)[1] if not (self.env.is_terminal(state) or self.env.is_obstacle(state)) else ''
+                best = self.choose_best_action(state) if not (self.env.is_terminal(state) or self.env.is_obstacle(state)) else ''
                 output.append(row_format.format(str(state), *(f'{self.get_q(state, a):.3f}' for a in actions), best) + '\n')
         return ''.join(output)
 
     
-    def epsilon(self, episode: int) -> float:
+    @property
+    def epsilon(self) -> float:
         """
         Get the exponential decay epsilon value
-
-        Args:
-            episode: Current episode
 
         Returns:
             The epsilon value
         """
-        return self.epsilon_min + (self.epsilon_max - self.epsilon_min) * math.exp(-self.epsilon_decay * episode)
+        return self.epsilon_min + (self.epsilon_max - self.epsilon_min) * math.exp(-self.epsilon_decay * self.t)
     
 
     def set_table(self, table: dict[tuple[tuple[int, int], str], float]) -> None:
@@ -76,24 +75,23 @@ class QLearning:
         return self.q_table.get((state, action), 0.0)
     
 
-    def choose_train_action(self, state: tuple[int, int], episode: int) -> str:
+    def choose_train_action(self, state: tuple[int, int]) -> tuple[str, bool]:
         """
         Chooses an action using an epsilon-greedy policy
 
         Args:
             state: Current state in the environment
-            episode: Current episode
 
         Returns:
-            An action to take
+            An action to take and whether it is exploitation
         """
-        if random.random() < self.epsilon(episode):
+        if random.random() < self.epsilon:
             # exploration - choose random action
             actions = self.env.ACTIONS.keys()
-            return random.choice(list(actions))
+            return random.choice(list(actions)), False
         else:
             # exploitation - choose action with highest Q-value
-            return self.choose_best_action(state)
+            return self.choose_best_action(state), True
         
 
     def choose_best_action(self, state: tuple[int, int]) -> str:
@@ -135,18 +133,19 @@ class QLearning:
         self.q_table[(state, action)] = old_q + self.alpha * bellman_err
 
     
-    def run(self, episode: int = 0, train: bool = False) -> tuple[float, str]:
+    def run(self, train: bool = False, verbose: bool = False) -> tuple[float, str]:
         """
         Run a tabular Q-learning training episode -- or evaluate the best performance
 
         Args:
-            episode: Current episode
             train: Whether it is training mode or "try-hard" mode
+            verbose: Whether to print to stdout or not
 
         Returns:
             A tuple containing the total reward for that episode and the actions taken
         """
         self.env.reset()
+        t_start = self.t
 
         total_reward = 0.0
         actions = []
@@ -154,13 +153,16 @@ class QLearning:
         start = self.env.get_pos()
         next = start
         total_reward += self.env.cell_value(next)
+        if verbose:
+            print(f'Iteration: {self.t - t_start} | Pos: {next} | Epsilon: {self.epsilon}\n{self}')
         while not self.env.is_terminal(next):
             # Perform action
             state = next
             if train:
-                action = self.choose_train_action(state, episode)
+                action, is_best = self.choose_train_action(state)
             else:
                 action = self.choose_best_action(state)
+                is_best = True
             self.env.move(action)
             actions.append(action)
 
@@ -173,28 +175,39 @@ class QLearning:
             if train:
                 self.update_q(state, action, next, reward)
 
+            # Update internal time step
+            self.t += 1
+            if verbose:
+                act_str = '*BEST*' if is_best else '*RANDOM*'
+                print(f'Iteration: {self.t - t_start} | Pos: {next} | Epsilon: {self.epsilon} | Prev. Action: {action} {act_str}\n{self}')
+
         end = next
         actions_taken = f'START {start} -|   {" -> ".join(actions)}   |- TERMINAL {end}'
         return total_reward, actions_taken
     
 
-    def train(self, iterations: int, seed: int = 42) -> list[float]:
+    def train(self, episodes: int, seed: int = 42, verbose: bool = False) -> list[float]:
         """
         Train the Q-learning algorithm
 
         Args:
-            iterations: Number of iterations
+            seed: Random seed for reproducibility
+            episodes: Number of episodes
+            verbose: Whether to print to stdout or not
 
         Returns:
             List of episode rewards
         """
         random.seed(seed)
         self.set_table(table={})
+        self.t = 0
 
         episode_rewards = []
 
-        for episode in range(iterations):
-            total_reward, _ = self.run(episode, train=True)
+        for episode in range(episodes):
+            if verbose:
+                print(f'Episode: {episode+1}/{episodes}')
+            total_reward, _ = self.run(episode, train=True, verbose=verbose)
             episode_rewards.append(total_reward)
 
         return episode_rewards

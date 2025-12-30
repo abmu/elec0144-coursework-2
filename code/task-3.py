@@ -277,7 +277,7 @@ def train_model(model: torch.nn.Module, train_loader: DataLoader, val_loader: Da
         val_accs.append(val_acc)
 
         print(
-            f'Epoch {epoch}/{epochs} | '
+            f'Epoch: {epoch}/{epochs} | '
             f'Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f} | '
             f'Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}'
         )
