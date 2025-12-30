@@ -114,12 +114,12 @@ def parse_grid_data(filename: str) -> list[list[str]]:
     return grid
 
 
-def create_confusion_matrix(y_true: list[int], y_pred: list[int], num_classes: int) -> np.ndarray:
+def confusion_matrix(y_true: list[int], y_pred: list[int], num_classes: int) -> np.ndarray:
     """
     Create a confusion matrix from the true values and predicted values
 
     Args:
-        y_true: True values
+        y_true: Actual values
         y_pred: Predicted values
         num_classes: Number of classes
 

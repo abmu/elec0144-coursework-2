@@ -64,3 +64,37 @@ def plot_losses(train_yss: list[tuple[str, np.ndarray]], log: bool = False) -> N
         plt.yscale('log')
     plt.legend()
     _end()
+
+
+def plot_confusion_matrix(cm: np.ndarray, class_names: list[str]) -> None:
+    num_classes = len(class_names)
+
+    # Create figure and axis
+    fig, ax = plt.subplots()
+
+    # Create a heatmap
+    im = ax.imshow(cm, cmap='Greens')
+
+    # Add colour bar
+    cbar = fig.colorbar(im)
+
+    # Set ticks
+    ax.set_xticks(np.arange(num_classes))
+    ax.set_yticks(np.arange(num_classes))
+    ax.set_xticklabels(class_names, rotation=45)
+    ax.set_yticklabels(class_names)
+
+    # Set labels
+    ax.set_xlabel("Predicted Class")
+    ax.set_ylabel("True Class")
+
+    # Add text in each cell
+    thresh = cm.max() / 2  # text colour threshold
+    for i in range(num_classes):
+        for j in range(num_classes):
+            txt_colour = 'white' if cm[i, j] > thresh else 'black'
+            ax.text(j, i, str(cm[i, j]), color=txt_colour, ha='center', va='center')
+
+    fig.tight_layout()
+
+    _end()

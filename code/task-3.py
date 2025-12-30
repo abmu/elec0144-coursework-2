@@ -6,11 +6,10 @@
 import torch
 from torchvision import models, datasets, transforms
 from torch.utils.data import DataLoader, random_split
-from utils import plot_loss, plot_acc
+from utils import confusion_matrix, plot_loss, plot_acc, plot_confusion_matrix
 
 # TODO
 # Maybe improve image dataset -- remove images that do not look similar with the rest of the images
-# Improve results visualisation -- check Transfer Learning example in week 5 lecture notes on Moodle
 
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -371,9 +370,11 @@ if __name__ == "__main__":
         optimiser=get_optimiser(alexnet, **optimiser),
         epochs=iterations
     )
+    alexnet_eval = evaluate_model(alexnet, val_loader, get_criterion(**criterion))
 
     plot_loss(alexnet_res['train_losses'], alexnet_res['val_losses'])
     plot_acc(alexnet_res['train_accs'], alexnet_res['val_accs'])
+    plot_confusion_matrix(confusion_matrix(alexnet_eval['all_labels'], alexnet_eval['all_preds'], num_classes), classes)
 
     googlenet = get_googlenet(output_classes=num_classes)
     googlenet_res = train_model(
@@ -384,8 +385,8 @@ if __name__ == "__main__":
         optimiser=get_optimiser(googlenet, **optimiser),
         epochs=iterations
     )
+    googlenet_eval = evaluate_model(googlenet, val_loader, get_criterion(**criterion))
     
     plot_loss(googlenet_res['train_losses'], googlenet_res['val_losses'])
     plot_acc(googlenet_res['train_accs'], googlenet_res['val_accs'])
-
-    evaluate_model(alexnet, val_loader, get_criterion(**criterion))
+    plot_confusion_matrix(confusion_matrix(googlenet_eval['all_labels'], googlenet_eval['all_preds'], num_classes), classes)
