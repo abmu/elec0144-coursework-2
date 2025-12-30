@@ -6,7 +6,7 @@
 import torch
 from torchvision import models, datasets, transforms
 from torch.utils.data import DataLoader, random_split
-from utils import confusion_matrix, plot_loss, plot_acc, plot_confusion_matrix
+from utils import confusion_matrix, plot_loss, plot_acc, plot_confusion_matrix, plot_lr_val_accuracies, plot_lr_val_losses
 
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -387,3 +387,44 @@ if __name__ == "__main__":
     plot_loss(googlenet_res['train_losses'], googlenet_res['val_losses'])
     plot_acc(googlenet_res['train_accs'], googlenet_res['val_accs'])
     plot_confusion_matrix(confusion_matrix(googlenet_eval['all_labels'], googlenet_eval['all_preds'], num_classes), classes)
+   
+    # Learning rate comparison (AlexNet + GoogLeNet)
+    
+    learning_rates = [0.1, 0.01, 0.001, 0.0001]
+
+    alexnet_hist = {}
+    for lr in learning_rates:
+        print(f'========== AlexNet | Learning rate: {lr} ==========\n')
+        model_lr = get_alexnet(output_classes=num_classes)
+
+        res = train_model(
+            model=model_lr,
+            train_loader=train_loader,
+            val_loader=val_loader,
+            criterion=get_criterion(**criterion),
+            optimiser=get_optimiser(model_lr, name=optimiser['name'], lr=lr),
+            epochs=iterations
+        )
+        alexnet_hist[lr] = res
+
+    plot_lr_val_losses(alexnet_hist, title="AlexNet: Validation Loss vs Epoch")
+    plot_lr_val_accuracies(alexnet_hist, title="AlexNet: Validation Accuracy vs Epoch")
+
+    googlenet_hist = {}
+    for lr in learning_rates:
+        print(f'========== GoogLeNet | Learning rate: {lr} ==========\n')
+        model_lr = get_googlenet(output_classes=num_classes)
+
+        res = train_model(
+            model=model_lr,
+            train_loader=train_loader,
+            val_loader=val_loader,
+            criterion=get_criterion(**criterion),
+            optimiser=get_optimiser(model_lr, name=optimiser['name'], lr=lr),
+            epochs=iterations
+        )
+        googlenet_hist[lr] = res
+
+    plot_lr_val_losses(googlenet_hist, title="GoogLeNet: Validation Loss vs Epoch")
+    plot_lr_val_accuracies(googlenet_hist, title="GoogLeNet: Validation Accuracy vs Epoch")
+      
