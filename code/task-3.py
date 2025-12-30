@@ -8,9 +8,6 @@ from torchvision import models, datasets, transforms
 from torch.utils.data import DataLoader, random_split
 from utils import confusion_matrix, plot_loss, plot_acc, plot_confusion_matrix
 
-# TODO
-# Maybe improve image dataset -- remove images that do not look similar with the rest of the images
-
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
