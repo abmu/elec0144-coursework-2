@@ -244,7 +244,7 @@ def _validate(model: torch.nn.Module, loader: DataLoader, criterion: torch.nn.Mo
     return running_loss / len(loader), correct / total
 
 
-def train_model(model: torch.nn.Module, train_loader: DataLoader, val_loader: DataLoader, criterion: torch.nn.Module, optimiser: torch.optim.Optimizer, epochs: int) -> dict[str, list[float]]:
+def train_model(model: torch.nn.Module, train_loader: DataLoader, val_loader: DataLoader, criterion: dict, optimiser: dict, epochs: int) -> dict[str, list[float]]:
     """
     Train the model on the training data and validate
 
@@ -260,14 +260,16 @@ def train_model(model: torch.nn.Module, train_loader: DataLoader, val_loader: Da
         The losses and accuracy of the model during the different epochs on the training and validation data
     """
     print(f'=== Training {type(model).__name__} ===')
+    model_criterion = get_criterion(**criterion)
+    model_optimiser = get_optimiser(model, **optimiser)
 
     train_losses = []
     train_accs = []
     val_losses = []
     val_accs = []
     for epoch in range(1, epochs+1):
-        train_loss, train_acc = _train(model, train_loader, criterion, optimiser)
-        val_loss, val_acc = _validate(model, val_loader, criterion)
+        train_loss, train_acc = _train(model, train_loader, model_criterion, model_optimiser)
+        val_loss, val_acc = _validate(model, val_loader, model_criterion)
 
         train_losses.append(train_loss)
         train_accs.append(train_acc)
@@ -291,7 +293,7 @@ def train_model(model: torch.nn.Module, train_loader: DataLoader, val_loader: Da
 
 
 @torch.no_grad()
-def evaluate_model(model: torch.nn.Module, test_loader: DataLoader, criterion: torch.nn.Module) -> dict[str, float | list[float]]:
+def evaluate_model(model: torch.nn.Module, test_loader: DataLoader, criterion: dict) -> dict[str, float | list[float]]:
     """
     Evaluate the model on the test data
 
@@ -304,6 +306,7 @@ def evaluate_model(model: torch.nn.Module, test_loader: DataLoader, criterion: t
         The test loss and accuracy, and all of the predictions and actual labels
     """
     print(f'=== Evaluating {type(model).__name__} ===')
+    model_criterion = get_criterion(**criterion)
 
     model.eval()
     running_loss = 0.0
@@ -317,7 +320,7 @@ def evaluate_model(model: torch.nn.Module, test_loader: DataLoader, criterion: t
         images, labels = images.to(DEVICE), labels.to(DEVICE)
 
         outputs = model(images)
-        loss = criterion(outputs, labels)
+        loss = model_criterion(outputs, labels)
 
         running_loss += loss.item()
         _, preds = torch.max(outputs, dim=1)
@@ -340,7 +343,7 @@ def evaluate_model(model: torch.nn.Module, test_loader: DataLoader, criterion: t
 
 
 if __name__ == "__main__":
-    # Train AlexNet and GoogLeNet on the fruits dataset
+    # Compare AlexNet and GoogLeNet on the fruits dataset
     foldername = 'task-3-fruits'
     split = (0.7, 0.3, 0)  # (train, validation, test)
     train_loader, val_loader, _, classes = get_train_val_test_loaders(foldername, ratio=split)
@@ -350,6 +353,7 @@ if __name__ == "__main__":
 
     # Training setup
     iterations = 30
+
     criterion = {
        'name': 'CrossEntropyLoss'
     }
@@ -360,15 +364,8 @@ if __name__ == "__main__":
 
     # Train and evaluate AlexNet
     alexnet = get_alexnet(output_classes=num_classes)
-    alexnet_res = train_model(
-        model=alexnet,
-        train_loader=train_loader,
-        val_loader=val_loader,
-        criterion=get_criterion(**criterion),
-        optimiser=get_optimiser(alexnet, **optimiser),
-        epochs=iterations
-    )
-    alexnet_eval = evaluate_model(alexnet, val_loader, get_criterion(**criterion))
+    alexnet_res = train_model(model=alexnet, train_loader=train_loader, val_loader=val_loader, criterion=criterion, optimiser=optimiser, epochs=iterations)
+    alexnet_eval = evaluate_model(model=alexnet, test_loader=val_loader, criterion=criterion)
 
     # Plot AlexNet data
     plot_loss(alexnet_res['train_losses'], alexnet_res['val_losses'])
@@ -377,15 +374,8 @@ if __name__ == "__main__":
 
     # Train and evaluate GoogLeNet
     googlenet = get_googlenet(output_classes=num_classes)
-    googlenet_res = train_model(
-        model=googlenet,
-        train_loader=train_loader,
-        val_loader=val_loader,
-        criterion=get_criterion(**criterion),
-        optimiser=get_optimiser(googlenet, **optimiser),
-        epochs=iterations
-    )
-    googlenet_eval = evaluate_model(googlenet, val_loader, get_criterion(**criterion))
+    googlenet_res = train_model(model=googlenet, train_loader=train_loader, val_loader=val_loader, criterion=criterion, optimiser=optimiser, epochs=iterations)
+    googlenet_eval = evaluate_model(model=googlenet, test_loader=val_loader, criterion=criterion)
     
     # Plot GoogLeNet data
     plot_loss(googlenet_res['train_losses'], googlenet_res['val_losses'])
@@ -393,7 +383,6 @@ if __name__ == "__main__":
     plot_confusion_matrix(confusion_matrix(googlenet_eval['all_labels'], googlenet_eval['all_preds'], num_classes), classes)
    
     # Learning rate parameter comparison (AlexNet + GoogLeNet)
-    
     LRS = [0.1, 0.01, 0.001, 0.0001]
 
     alexnet_losses = []
@@ -402,7 +391,7 @@ if __name__ == "__main__":
     googlenet_accs = []
     for lr in LRS:
         criterion = {
-        'name': 'CrossEntropyLoss'
+            'name': 'CrossEntropyLoss'
         }
         optimiser = {
             'name': 'SGD',
@@ -410,26 +399,17 @@ if __name__ == "__main__":
         }
 
         alexnet = get_alexnet(output_classes=num_classes)
-        alexnet_res = train_model(
-            model=alexnet,
-            train_loader=train_loader,
-            val_loader=val_loader,
-            criterion=get_criterion(**criterion),
-            optimiser=get_optimiser(alexnet, **optimiser),
-            epochs=iterations
-        )
+        alexnet_res = train_model(model=alexnet, train_loader=train_loader, val_loader=val_loader, criterion=criterion, optimiser=optimiser, epochs=iterations)
 
-        model_lr = get_googlenet(output_classes=num_classes)
+        googlenet = get_googlenet(output_classes=num_classes)
+        googlenet_res = train_model(model=googlenet, train_loader=train_loader, val_loader=val_loader, criterion=criterion, optimiser=optimiser, epochs=iterations)
 
-        res = train_model(
-            model=model_lr,
-            train_loader=train_loader,
-            val_loader=val_loader,
-            criterion=get_criterion(**criterion),
-            optimiser=get_optimiser(model_lr, name=optimiser['name'], lr=lr),
-            epochs=iterations
-        )
-        googlenet_hist[lr] = res
+        alexnet_losses.append((f'lr={lr}', alexnet_res['val_losses']))
+        alexnet_accs.append((f'lr={lr}', alexnet_res['val_accs']))
+        googlenet_losses.append((f'lr={lr}', googlenet_res['val_losses']))
+        googlenet_accs.append((f'lr={lr}', googlenet_res['val_accs']))
 
-    plot_lr_val_losses(googlenet_hist, title="GoogLeNet: Validation Loss vs Epoch")
-    plot_lr_val_accuracies(googlenet_hist, title="GoogLeNet: Validation Accuracy vs Epoch")      
+    plot_losses(alexnet_losses)
+    plot_accuracies(alexnet_accs)
+    plot_losses(googlenet_losses)
+    plot_accuracies(googlenet_accs)
