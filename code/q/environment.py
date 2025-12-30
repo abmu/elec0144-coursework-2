@@ -80,7 +80,7 @@ class Environment:
             return False, 'Move out of bounds'
         
         # Check if obstacle
-        if self._is_obstacle((new_x, new_y)):
+        if self.is_obstacle((new_x, new_y)):
             return False, 'Cannot move into obstacle'
         
         # Update pos
@@ -126,7 +126,7 @@ class Environment:
         return cell[0] == self.START
 
 
-    def _is_obstacle(self, pos) -> bool:
+    def is_obstacle(self, pos) -> bool:
         """
         Checks if the position is an obstacle cell
 
@@ -164,7 +164,7 @@ class Environment:
         Returns:
             A float representing the cell value
         """
-        if not self._in_bounds(pos) or self._is_obstacle(pos):
+        if not self._in_bounds(pos) or self.is_obstacle(pos):
             return float('nan')
 
         cell = self.grid[pos[0]][pos[1]]

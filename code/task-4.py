@@ -25,7 +25,7 @@ rewards = q_learning.train(iterations=100)
 # Display results
 plot_rewards(rewards)
 
-print('POS (Y, X) -- ORIGIN TOP-LEFT CORNER\n')
+print('NOTE: Coordinates are (Y, X), with origin at top-left corner\n')
 print(environment)
 print(q_learning)
 

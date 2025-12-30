@@ -19,12 +19,13 @@ class QLearning:
     def __str__(self) -> str:
         output = ['===== Q-TABLE =====', '\n']
         actions = self.env.ACTIONS.keys()
-        row_format = '{:>8}' * (len(actions) + 1)
-        output.append(row_format.format('', *actions) + '\n')
+        row_format = '{:>8}' * (len(actions) + 2)
+        output.append(row_format.format('', *actions, '*BEST*') + '\n')
         for i in range(self.env.rows):
             for j in range(self.env.cols):
                 state = (i, j)
-                output.append(row_format.format(str(state), *(f'{self.get_q(state, a):.3f}' for a in actions)) + '\n')
+                best = max((self.get_q(state, a), a) for a in actions)[1] if not (self.env.is_terminal(state) or self.env.is_obstacle(state)) else ''
+                output.append(row_format.format(str(state), *(f'{self.get_q(state, a):.3f}' for a in actions), best) + '\n')
         return ''.join(output)
 
     

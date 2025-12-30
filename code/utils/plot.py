@@ -116,5 +116,4 @@ def plot_rewards(rewards: np.ndarray) -> None:
     plt.xlabel("Epoch")
     plt.ylabel("Reward")
     plt.plot(range(1, len(rewards)+1), rewards)  # start from 1
-    plt.legend()
     _end()
