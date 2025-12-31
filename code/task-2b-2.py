@@ -28,6 +28,7 @@ losses = []
 accs = []
 
 for lr in LRS:
+    print(f'Training with learning rate: {lr}')
     mlp = MultilayerPerceptron(
         layers=layers,
         optimiser=SGD(lr=lr),

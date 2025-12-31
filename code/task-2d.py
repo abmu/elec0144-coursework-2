@@ -16,7 +16,7 @@ configs = [
             (3, 'tanh'),
             (3, 'linear'),
         ],
-        SGD(lr=0.01)
+        SGD(lr=0.001)
     ),
     (
         'Tanh-shallow',
@@ -25,7 +25,7 @@ configs = [
             (3, 'tanh'),
             (3, 'linear'),
         ],
-        SGD(lr=0.01)
+        SGD(lr=0.001)
     ),
     (
         'Tanh-wide',
@@ -35,7 +35,7 @@ configs = [
             (10, 'tanh'),
             (3, 'linear'),
         ],
-        SGD(lr=0.01)
+        SGD(lr=0.001)
     ),
     (
         'ReLU',
@@ -45,7 +45,7 @@ configs = [
             (3, 'relu'),
             (3, 'linear'),
         ],
-        SGD(lr=0.01)
+        SGD(lr=0.001)
     ),
     (
         'ReLU-deep',
@@ -56,7 +56,7 @@ configs = [
             (8, 'relu'),
             (3, 'linear'),
         ],
-        SGD(lr=0.01)
+        SGD(lr=0.001)
     ),
     (
         'Sigmoid',
@@ -66,7 +66,7 @@ configs = [
             (3, 'sigmoid'),
             (3, 'linear'),
         ],
-        SGD(lr=0.01)
+        SGD(lr=0.001)
     ),
     (
         'Sigmoid-output',
@@ -76,7 +76,7 @@ configs = [
             (3, 'tanh'),
             (3, 'sigmoid'),
         ],
-        SGD(lr=0.01)
+        SGD(lr=0.001)
     ),
 ]
 
