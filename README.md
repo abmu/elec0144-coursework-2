@@ -39,13 +39,13 @@ cd code
 
 ### Task 1: Regression (MLP)
 
-*   **Task 1a (Main):** Trains a simple 1-3-1 MLP on polynomial data using SGD.
+*   **Task 1b-1:** Trains a simple 1-3-1 MLP on polynomial data using SGD.
     ```bash
-    python task-1.py
+    python task-1b-1.py
     ```
-*   **Task 1b:** Experiments with different learning rates.
+*   **Task 1b-2:** Experiments with different learning rates.
     ```bash
-    python task-1b.py
+    python task-1b-2.py
     ```
 *   **Task 1c:** Compares different optimisers (SGD, Momentum, Adam).
     ```bash
@@ -58,13 +58,21 @@ cd code
 
 ### Task 2: Classification
 
-*   **Task 2 (Main):** Trains the MLP to classify Iris flowers (using `task-2-iris.txt`).
+*   **Task 2b-1:** Trains the MLP to classify Iris flowers (using `task-2-iris.txt`).
     ```bash
-    python task-2.py
+    python task-2b-1.py
     ```
-*   **Task 2c:** Compares SGD with Momentum vs. Adam for classification.
+*   **Task 2b-2:** Experiments with different learning rates.
     ```bash
-    python task2c.py
+    python task-2b-2.py
+    ```
+*   **Task 2c:** Compares different optimisers (SGD, Momentum, Adam).
+    ```bash
+    python task-2c.py
+    ```
+*   **Task 2d:** Explores different network architectures and activation functions (Tanh, ReLU, Sigmoid).
+    ```bash
+    python task-2d.py
     ```
 
 ### Task 3: Transfer Learning
