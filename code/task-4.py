@@ -16,11 +16,11 @@ q_learning = QLearning(
     env=environment,
     alpha=0.1,
     gamma=0.9,
-    epsilon_decay=0.003
+    epsilon_decay=0.0005
 )
 
 # Train the q-learning algorithm
-rewards = q_learning.train(episodes=200, verbose=True)
+rewards = q_learning.train(episodes=1000, verbose=True)
 
 # Display results
 plot_rewards(rewards)
